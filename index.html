@@ -1,0 +1,2841 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ميزانيتي</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  :root {
+    --bg: #f7f8fb;
+    --card: #ffffff;
+    --text: #1a1a2e;
+    --text-soft: #6b7280;
+    --border: #e5e7eb;
+    --bg-soft: #fafbfc;
+    --primary: #1a1a2e;
+    --green: #16a34a;
+    --green-soft: #dcfce7;
+    --red: #dc2626;
+    --red-soft: #fee2e2;
+    --orange: #ea580c;
+    --blue: #2563eb;
+    --blue-soft: #dbeafe;
+    --purple: #7c3aed;
+    --shadow: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
+    --shadow-lg: 0 10px 25px -5px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.04);
+    --radius: 14px;
+  }
+
+  body[data-theme="dark"] {
+    --bg: #0f1117;
+    --card: #1a1d27;
+    --text: #f3f4f6;
+    --text-soft: #9ca3af;
+    --border: #2a2f3d;
+    --bg-soft: #232838;
+    --primary: #4f8eff;
+    --green: #22c55e;
+    --green-soft: #14532d;
+    --red: #ef4444;
+    --red-soft: #4a1818;
+    --blue: #60a5fa;
+    --blue-soft: #1e3a5f;
+    --shadow: 0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.4);
+    --shadow-lg: 0 10px 25px -5px rgba(0,0,0,0.5), 0 4px 6px -2px rgba(0,0,0,0.3);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Cairo', 'Tajawal', sans-serif;
+    direction: rtl;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+    padding: 20px 16px;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  body[dir="ltr"] { font-family: 'Inter', 'Cairo', sans-serif; }
+
+  .container { max-width: 1200px; margin: 0 auto; }
+
+  /* ===== Top Toolbar ===== */
+  .top-toolbar {
+    background: var(--card);
+    padding: 10px 14px;
+    border-radius: var(--radius);
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  .tool-btn {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+  .tool-btn:hover { background: var(--card); transform: translateY(-1px); border-color: var(--primary); color: var(--primary); }
+
+  .tool-btn-icon {
+    padding: 8px 10px;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 38px;
+  }
+  .tool-btn-icon:hover { background: var(--card); border-color: var(--primary); }
+
+  .tool-btn-danger { background: rgba(239,68,68,0.1); color: var(--red); border-color: rgba(239,68,68,0.3); }
+  .tool-btn-danger:hover { background: rgba(239,68,68,0.2); color: var(--red); border-color: var(--red); }
+
+  /* ===== Hero / Header ===== */
+  .app-header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    color: white;
+    padding: 24px 28px;
+    border-radius: var(--radius);
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-lg);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 20px;
+    align-items: center;
+  }
+
+  .header-title-wrap { display: flex; align-items: center; gap: 12px; }
+  .header-emoji { font-size: 28px; }
+
+  .header-title-input {
+    font-size: 24px;
+    font-weight: 800;
+    color: white;
+    background: transparent;
+    border: none;
+    border-bottom: 2px dashed transparent;
+    padding: 2px 6px;
+    margin: 0 -6px;
+    border-radius: 4px;
+    width: 100%;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+  .header-title-input:hover { border-bottom-color: rgba(255,255,255,0.3); }
+  .header-title-input:focus { outline: none; border-bottom-color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.05); }
+
+  .header-subtitle { font-size: 13px; opacity: 0.75; margin-top: 4px; }
+
+  .header-clock {
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.12);
+    padding: 14px 18px;
+    border-radius: 12px;
+    text-align: center;
+    min-width: 160px;
+  }
+
+  .clock-time {
+    font-family: 'Inter', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    direction: ltr;
+    line-height: 1.1;
+  }
+
+  .clock-meridiem { font-size: 11px; opacity: 0.7; margin-right: 4px; font-weight: 500; }
+  .clock-date { font-size: 11px; opacity: 0.7; margin-top: 6px; }
+
+  /* ===== Buttons ===== */
+  .btn {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-primary:hover { transform: translateY(-1px); filter: brightness(1.1); }
+
+  .btn-danger { background: var(--red); color: white; }
+  .btn-danger:hover { filter: brightness(1.1); }
+
+  .btn-ghost { background: transparent; color: var(--text-soft); padding: 8px 12px; }
+  .btn-ghost:hover { background: var(--bg-soft); color: var(--text); }
+
+  .btn-soft { background: var(--bg-soft); color: var(--text); border: 1px solid var(--border); }
+  .btn-soft:hover { background: var(--card); border-color: var(--primary); color: var(--primary); }
+
+  .btn-icon {
+    padding: 6px;
+    background: transparent;
+    border-radius: 6px;
+    color: var(--text-soft);
+    border: none;
+    cursor: pointer;
+  }
+  .btn-icon:hover { background: var(--red-soft); color: var(--red); }
+
+  /* ===== Summary Cards ===== */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .summary-card {
+    background: var(--card);
+    padding: 18px 20px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border-right: 4px solid var(--primary);
+    transition: transform 0.2s;
+  }
+  body[dir="ltr"] .summary-card { border-right: none; border-left: 4px solid var(--primary); }
+  .summary-card:hover { transform: translateY(-2px); }
+  .summary-card.income { border-color: var(--green); }
+  .summary-card.expense { border-color: var(--red); }
+  .summary-card.balance { border-color: var(--blue); }
+  .summary-card.savings { border-color: var(--purple); }
+
+  .summary-label { font-size: 12px; color: var(--text-soft); margin-bottom: 6px; font-weight: 500; }
+  .summary-value { font-size: 22px; font-weight: 800; color: var(--text); }
+  .summary-value.positive { color: var(--green); }
+  .summary-value.negative { color: var(--red); }
+
+  /* ===== Sections ===== */
+  .section {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+
+  .section-header {
+    padding: 16px 22px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .section-header:hover { background: var(--bg-soft); }
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    flex: 1;
+    min-width: 180px;
+  }
+
+  .section-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .section-actions { display: flex; gap: 8px; align-items: center; }
+
+  .section-total {
+    font-size: 14px;
+    font-weight: 700;
+    padding: 6px 12px;
+    background: var(--bg-soft);
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .toggle-arrow { transition: transform 0.2s; color: var(--text-soft); }
+  .section.collapsed .toggle-arrow { transform: rotate(180deg); }
+  .section.collapsed .section-body { display: none; }
+  .section-body { padding: 6px 0; }
+
+  /* ===== Tables ===== */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+
+  th {
+    background: var(--bg-soft);
+    padding: 11px 18px;
+    text-align: right;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-soft);
+    border-bottom: 1px solid var(--border);
+  }
+  body[dir="ltr"] th { text-align: left; }
+
+  td {
+    padding: 4px 18px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+    color: var(--text);
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--bg-soft); }
+
+  .cell-input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--text);
+    padding: 10px 8px;
+    border-radius: 6px;
+    transition: background 0.15s;
+  }
+  .cell-input:hover { background: var(--bg-soft); }
+  .cell-input:focus { background: var(--bg-soft); outline: 2px solid var(--blue); }
+
+  .cell-amount { text-align: left; font-weight: 600; direction: ltr; }
+  body[dir="ltr"] .cell-amount { text-align: right; }
+
+  .cell-date { font-size: 13px; color: var(--text-soft); direction: ltr; text-align: center; }
+  body[data-theme="dark"] input[type="date"] { color-scheme: dark; }
+
+  .col-num { width: 50px; text-align: center; color: var(--text-soft); font-size: 13px; }
+  .col-amount { width: 150px; }
+  .col-date { width: 160px; text-align: center; }
+  .col-action { width: 50px; text-align: center; }
+
+  .add-row-btn {
+    margin: 12px 18px;
+    padding: 9px;
+    width: calc(100% - 36px);
+    background: var(--bg-soft);
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    color: var(--text-soft);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+  .add-row-btn:hover { background: var(--card); border-color: var(--primary); color: var(--primary); }
+
+  /* ===== Settings Panel ===== */
+  .settings-panel {
+    position: fixed;
+    top: 0;
+    left: -380px;
+    width: 360px;
+    max-width: 90vw;
+    height: 100vh;
+    background: var(--card);
+    box-shadow: -4px 0 20px rgba(0,0,0,0.1);
+    transition: left 0.3s;
+    z-index: 100;
+    overflow-y: auto;
+    padding: 22px;
+  }
+  .settings-panel.open { left: 0; }
+  body[dir="ltr"] .settings-panel { left: auto; right: -380px; box-shadow: 4px 0 20px rgba(0,0,0,0.1); }
+  body[dir="ltr"] .settings-panel.open { right: 0; left: auto; }
+
+  .settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .settings-header h3 { font-size: 18px; font-weight: 700; }
+
+  .close-btn {
+    background: var(--bg-soft);
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 18px;
+    color: var(--text-soft);
+  }
+  .close-btn:hover { background: var(--border); }
+
+  .setting-group { margin-bottom: 22px; }
+
+  .setting-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .accent-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+
+  .accent-option {
+    aspect-ratio: 1;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 3px solid var(--card);
+    box-shadow: 0 0 0 1px var(--border);
+    transition: transform 0.15s;
+  }
+  .accent-option:hover { transform: scale(1.15); }
+  .accent-option.active { box-shadow: 0 0 0 2px var(--text); }
+
+  .toggle-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    background: var(--bg-soft);
+    border-radius: 10px;
+    margin-bottom: 6px;
+  }
+  .toggle-row .label-text { font-size: 13px; font-weight: 500; }
+
+  .toggle-switch {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    background: var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .toggle-switch::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  }
+  .toggle-switch.active { background: var(--green); }
+  .toggle-switch.active::after { transform: translateX(20px); }
+
+  .seg-control {
+    display: flex;
+    background: var(--bg-soft);
+    border-radius: 10px;
+    padding: 3px;
+    gap: 2px;
+  }
+
+  .seg-option {
+    flex: 1;
+    padding: 8px 10px;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-soft);
+    transition: all 0.15s;
+  }
+  .seg-option.active { background: var(--card); color: var(--text); box-shadow: var(--shadow); }
+
+  .form-select {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 14px;
+    background: var(--card);
+    color: var(--text);
+  }
+  .form-select:focus { outline: 2px solid var(--blue); border-color: transparent; }
+
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    z-index: 99;
+  }
+  .overlay.show { opacity: 1; pointer-events: all; }
+
+  /* ===== Modals ===== */
+  .modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    padding: 16px;
+  }
+  .modal.show { display: flex; }
+
+  .modal-content {
+    background: var(--card);
+    color: var(--text);
+    padding: 26px;
+    border-radius: var(--radius);
+    max-width: 480px;
+    width: 100%;
+    box-shadow: var(--shadow-lg);
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal-content h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+  .modal-desc { font-size: 13px; color: var(--text-soft); margin-bottom: 18px; line-height: 1.6; }
+
+  .form-field { margin-bottom: 14px; }
+
+  .form-field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+
+  .form-field input, .form-field select {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 14px;
+    background: var(--card);
+    color: var(--text);
+  }
+  .form-field input:focus, .form-field select:focus { outline: 2px solid var(--blue); border-color: transparent; }
+
+  .modal-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 22px;
+    flex-wrap: wrap;
+  }
+
+  .icon-picker {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 6px;
+    max-height: 160px;
+    overflow-y: auto;
+    padding: 8px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg-soft);
+  }
+
+  .icon-option {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    background: var(--card);
+  }
+  .icon-option:hover { background: var(--bg-soft); }
+  .icon-option.active { border-color: var(--blue); background: var(--blue-soft); }
+
+  .color-picker-row { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  .color-dot {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 3px solid var(--card);
+    box-shadow: 0 0 0 1px var(--border);
+  }
+  .color-dot.active { box-shadow: 0 0 0 2px var(--text); }
+
+  .empty-state { text-align: center; padding: 50px 20px; color: var(--text-soft); }
+  .empty-state .emoji { font-size: 48px; margin-bottom: 12px; }
+  .empty-state h3 { font-size: 18px; color: var(--text); margin-bottom: 6px; }
+  .empty-state p { font-size: 14px; margin-bottom: 18px; }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--text);
+    color: var(--card);
+    padding: 12px 20px;
+    border-radius: 10px;
+    box-shadow: var(--shadow-lg);
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 300;
+    font-size: 13px;
+  }
+  body[dir="ltr"] .toast { right: auto; left: 24px; }
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  .danger-modal .modal-content { border-top: 4px solid var(--red); }
+  .danger-icon { font-size: 48px; text-align: center; margin-bottom: 12px; }
+
+  /* ===== Prayer Times Modal ===== */
+  .prayer-times-list { display: grid; gap: 10px; }
+  .prayer-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: var(--bg-soft);
+    border-radius: 10px;
+    transition: all 0.2s;
+  }
+  .prayer-row.active {
+    background: linear-gradient(135deg, var(--green) 0%, #15803d 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(22,163,74,0.3);
+  }
+  .prayer-row .prayer-icon { font-size: 20px; }
+  .prayer-row .prayer-name { font-weight: 700; font-size: 14px; }
+  .prayer-row .prayer-time { font-family: 'Inter', monospace; direction: ltr; font-weight: 700; font-size: 15px; }
+
+  .location-bar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 10px 14px;
+    background: var(--bg-soft);
+    border-radius: 10px;
+    margin-bottom: 14px;
+    font-size: 13px;
+  }
+  .location-bar .loc-icon { color: var(--red); }
+  .location-bar input { flex: 1; border: none; background: transparent; font-family: inherit; font-size: 13px; color: var(--text); padding: 4px; }
+  .location-bar input:focus { outline: none; }
+
+  .loading {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-soft);
+  }
+  .spinner {
+    width: 32px; height: 32px;
+    border: 3px solid var(--border);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    margin: 0 auto 12px;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ===== Calculator ===== */
+  .calc-display {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+    text-align: left;
+    direction: ltr;
+    min-height: 80px;
+  }
+  .calc-prev { font-size: 13px; color: var(--text-soft); min-height: 18px; word-break: break-all; }
+  .calc-current { font-size: 32px; font-weight: 800; color: var(--text); min-height: 40px; word-break: break-all; }
+
+  .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+
+  .calc-btn {
+    aspect-ratio: 1.4;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Inter', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.1s;
+    background: var(--bg-soft);
+    color: var(--text);
+  }
+  .calc-btn:hover { transform: scale(1.03); }
+  .calc-btn:active { transform: scale(0.97); }
+  .calc-btn.op { background: var(--blue-soft); color: var(--blue); font-weight: 700; }
+  .calc-btn.eq { background: var(--green); color: white; }
+  .calc-btn.clear { background: var(--red-soft); color: var(--red); }
+  .calc-btn.span-2 { grid-column: span 2; aspect-ratio: 2.9; }
+
+  .calc-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 14px;
+    background: var(--bg-soft);
+    border-radius: 10px;
+    padding: 3px;
+  }
+  .calc-tab {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-soft);
+  }
+  .calc-tab.active { background: var(--card); color: var(--text); box-shadow: var(--shadow); }
+
+  /* ===== Currency Converter ===== */
+  .conv-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .conv-input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-family: 'Inter', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    background: var(--card);
+    color: var(--text);
+    direction: ltr;
+    text-align: left;
+  }
+  .conv-select {
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    background: var(--card);
+    color: var(--text);
+    min-width: 90px;
+  }
+  .conv-swap {
+    text-align: center;
+    margin: 8px 0;
+  }
+  .conv-swap-btn {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    color: var(--text-soft);
+  }
+  .conv-swap-btn:hover { color: var(--primary); border-color: var(--primary); }
+  .conv-rate {
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-soft);
+    margin-top: 8px;
+    direction: ltr;
+  }
+
+  /* ===== End of Service ===== */
+  .eos-results {
+    background: var(--bg-soft);
+    border-radius: 12px;
+    padding: 18px;
+    margin-top: 16px;
+  }
+  .eos-result-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+  .eos-result-row:last-child { border-bottom: none; }
+  .eos-result-row.total {
+    font-weight: 800;
+    font-size: 16px;
+    padding-top: 12px;
+    color: var(--green);
+  }
+  .eos-result-row .label { color: var(--text-soft); }
+  .eos-result-row .value { font-family: 'Inter', monospace; direction: ltr; font-weight: 700; }
+
+  .eos-info {
+    font-size: 12px;
+    color: var(--text-soft);
+    background: var(--blue-soft);
+    color: var(--blue);
+    padding: 10px 12px;
+    border-radius: 8px;
+    margin-top: 12px;
+    line-height: 1.6;
+  }
+
+  body[data-theme="dark"] .eos-info { color: #93c5fd; }
+
+  /* ===== Mobile ===== */
+  @media (max-width: 720px) {
+    body { padding: 12px 8px; }
+    .top-toolbar { padding: 8px; gap: 6px; }
+    .tool-btn span:not(.ic) { display: none; }
+    .tool-btn { padding: 8px 10px; }
+    .app-header { grid-template-columns: 1fr; gap: 14px; padding: 18px; text-align: center; }
+    .header-title-wrap { justify-content: center; }
+    .header-clock { justify-self: center; min-width: 200px; }
+    .summary-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .summary-card { padding: 14px; }
+    .summary-value { font-size: 18px; }
+    .section-header { padding: 14px 16px; }
+    th, td { padding: 4px 10px; }
+    .col-num { display: none; }
+    .add-row-btn { margin: 10px; width: calc(100% - 20px); }
+    .col-date { width: 130px; }
+    .cell-date { font-size: 12px; }
+    .calc-btn { font-size: 16px; }
+  }
+
+  @media print {
+    body { background: white; padding: 0; }
+    .top-toolbar, .header-clock { display: none !important; }
+    .app-header, .summary-card, .section { box-shadow: none; }
+    .section-actions, .add-row-btn, .col-action { display: none !important; }
+    .section { break-inside: avoid; page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body data-theme="dark" dir="rtl">
+
+<div class="container">
+
+  <!-- ===== Top Toolbar ===== -->
+  <div class="top-toolbar">
+    <button class="tool-btn-icon" onclick="toggleTheme()" id="themeToggle" title="الوضع الليلي">🌙</button>
+    <button class="tool-btn" onclick="openCalculatorModal()" title="آلة حاسبة">🧮 <span data-t="calculator">آلة حاسبة</span></button>
+    <button class="tool-btn" onclick="openPrayerModal()" title="مواقيت الصلاة">🕌 <span data-t="prayerTimes">مواقيت الصلاة</span></button>
+    <button class="tool-btn" onclick="openEosModal()" title="نهاية الخدمة">📋 <span data-t="endOfService">نهاية الخدمة</span></button>
+    <button class="tool-btn" onclick="document.getElementById('excelFile').click()">📥 <span data-t="importExcel">استيراد Excel</span></button>
+    <input type="file" id="excelFile" accept=".xlsx,.xls,.csv" style="display:none" onchange="importExcel(event)">
+    <button class="tool-btn" onclick="exportExcel()">📤 <span data-t="exportExcel">تصدير Excel</span></button>
+    <button class="tool-btn" onclick="exportPDF()">📄 <span data-t="exportPDF">تصدير PDF</span></button>
+    <button class="tool-btn" onclick="window.print()">🖨️ <span data-t="print">طباعة</span></button>
+    <button class="tool-btn" onclick="openSettings()">⚙️ <span data-t="settings">الإعدادات</span></button>
+    <button class="tool-btn tool-btn-danger" onclick="openResetModal()">🗑️ <span data-t="resetAll">مسح الكل</span></button>
+  </div>
+
+  <!-- ===== Header ===== -->
+  <div class="app-header">
+    <div>
+      <div class="header-title-wrap">
+        <span class="header-emoji">💰</span>
+        <input class="header-title-input" id="appTitle" value="ميزانيتي" onchange="updateAppTitle(this.value)" maxlength="50">
+      </div>
+      <p class="header-subtitle" id="currentDate"></p>
+    </div>
+    <div class="header-clock">
+      <div class="clock-time" id="clockTime">--:--:--</div>
+      <div class="clock-date" id="clockDate"></div>
+    </div>
+  </div>
+
+  <!-- ===== Summary ===== -->
+  <div class="summary-grid">
+    <div class="summary-card income">
+      <div class="summary-label" data-t="totalIncome">إجمالي الدخل</div>
+      <div class="summary-value positive" id="totalIncome">0</div>
+    </div>
+    <div class="summary-card expense">
+      <div class="summary-label" data-t="totalExpense">إجمالي المصاريف</div>
+      <div class="summary-value negative" id="totalExpense">0</div>
+    </div>
+    <div class="summary-card balance">
+      <div class="summary-label" data-t="netBalance">الرصيد المتبقي</div>
+      <div class="summary-value" id="netBalance">0</div>
+    </div>
+    <div class="summary-card savings">
+      <div class="summary-label" data-t="savingsRate">نسبة الادخار</div>
+      <div class="summary-value" id="savingsRate">0%</div>
+    </div>
+  </div>
+
+  <div id="sectionsContainer"></div>
+
+  <button class="btn btn-primary" onclick="openAddSectionModal()" style="width:100%; padding:14px; margin-bottom:24px; font-size:14px;">
+    ➕ <span data-t="addSection">إضافة قسم جديد</span>
+  </button>
+
+</div>
+
+<!-- ===== Settings Panel ===== -->
+<div class="overlay" id="overlay" onclick="closeAllModals()"></div>
+<div class="settings-panel" id="settingsPanel">
+  <div class="settings-header">
+    <h3>⚙️ <span data-t="settingsTitle">الإعدادات</span></h3>
+    <button class="close-btn" onclick="closeSettings()">✕</button>
+  </div>
+
+  <div class="setting-group">
+    <label class="setting-label" data-t="theme">المظهر</label>
+    <div class="seg-control">
+      <button class="seg-option" id="themeLight" onclick="setTheme('light')" data-t="themeLight">فاتح ☀️</button>
+      <button class="seg-option" id="themeDark" onclick="setTheme('dark')" data-t="themeDark">داكن 🌙</button>
+    </div>
+  </div>
+
+  <div class="setting-group">
+    <label class="setting-label" data-t="language">اللغة</label>
+    <div class="seg-control">
+      <button class="seg-option" id="langAr" onclick="setLanguage('ar')">العربية</button>
+      <button class="seg-option" id="langEn" onclick="setLanguage('en')">English</button>
+    </div>
+  </div>
+
+  <div class="setting-group">
+    <label class="setting-label" data-t="accentColor">اللون الرئيسي</label>
+    <div class="accent-grid" id="accentColors"></div>
+  </div>
+
+  <div class="setting-group">
+    <label class="setting-label" data-t="currency">العملة</label>
+    <select class="form-select" id="currencySelect" onchange="changeCurrency()">
+      <option value="SAR" data-t-opt="curSAR">ريال سعودي ﷼</option>
+      <option value="$" data-t-opt="curUSD">دولار أمريكي ($)</option>
+      <option value="د.إ" data-t-opt="curAED">درهم إماراتي (د.إ)</option>
+      <option value="د.ك" data-t-opt="curKWD">دينار كويتي (د.ك)</option>
+      <option value="ر.ق" data-t-opt="curQAR">ريال قطري (ر.ق)</option>
+      <option value="ر.ع" data-t-opt="curOMR">ريال عماني (ر.ع)</option>
+      <option value="د.ب" data-t-opt="curBHD">دينار بحريني (د.ب)</option>
+      <option value="ج.م" data-t-opt="curEGP">جنيه مصري (ج.م)</option>
+      <option value="د.أ" data-t-opt="curJOD">دينار أردني (د.أ)</option>
+      <option value="€" data-t-opt="curEUR">يورو (€)</option>
+      <option value="£" data-t-opt="curGBP">جنيه استرليني (£)</option>
+    </select>
+  </div>
+
+  <div class="setting-group">
+    <label class="setting-label" data-t="numberStyle">شكل الأرقام</label>
+    <div class="seg-control">
+      <button class="seg-option" id="numLatin" onclick="setNumberStyle('latin')">123</button>
+      <button class="seg-option" id="numArabic" onclick="setNumberStyle('arabic')">١٢٣</button>
+    </div>
+  </div>
+
+  <div class="setting-group">
+    <label class="setting-label" data-t="datesSection">التواريخ</label>
+    <div class="toggle-row">
+      <span class="label-text" data-t="showDates">إظهار تاريخ المشتريات</span>
+      <div class="toggle-switch" id="showDatesToggle" onclick="toggleShowDates()"></div>
+    </div>
+    <div style="margin-top:8px;">
+      <label class="setting-label" style="margin-bottom:6px;" data-t="calendarType">نوع التقويم</label>
+      <div class="seg-control">
+        <button class="seg-option" id="calGregorian" onclick="setCalendar('gregorian')" data-t="gregorian">ميلادي</button>
+        <button class="seg-option" id="calHijri" onclick="setCalendar('hijri')" data-t="hijri">هجري</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="setting-group">
+    <label class="setting-label" data-t="dataActions">البيانات</label>
+    <button class="btn btn-soft" style="width:100%; margin-bottom:8px;" onclick="exportData()">💾 <span data-t="saveBackup">حفظ نسخة احتياطية</span></button>
+    <button class="btn btn-soft" style="width:100%; margin-bottom:8px;" onclick="document.getElementById('importFile').click()">📂 <span data-t="loadBackup">استيراد نسخة احتياطية</span></button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+    <button class="btn btn-soft" style="width:100%;" onclick="loadDefaultTemplate()">📋 <span data-t="loadTemplate">تحميل قالب جاهز</span></button>
+  </div>
+
+  <div style="font-size:12px; color:var(--text-soft); border-top:1px solid var(--border); padding-top:14px; margin-top:18px; line-height:1.7;" data-t="settingsTip">
+    💡 كل البيانات محفوظة على جهازك تلقائياً.
+  </div>
+</div>
+
+<!-- ===== Add Section Modal ===== -->
+<div class="modal" id="addSectionModal">
+  <div class="modal-content">
+    <h3>➕ <span data-t="addSectionTitle">إضافة قسم جديد</span></h3>
+    <div class="form-field">
+      <label data-t="sectionName">اسم القسم</label>
+      <input type="text" id="sectionName" data-t-ph="sectionNamePh" placeholder="مثلاً: راتب الشهر، فواتير، مصاريف يومية...">
+    </div>
+    <div class="form-field">
+      <label data-t="sectionType">النوع</label>
+      <select id="sectionType">
+        <option value="income" data-t-opt="typeIncomeOpt">💰 دخل</option>
+        <option value="expense" data-t-opt="typeExpenseOpt">💸 مصاريف</option>
+      </select>
+    </div>
+    <div class="form-field">
+      <label data-t="icon">الأيقونة</label>
+      <div class="icon-picker" id="iconPicker"></div>
+    </div>
+    <div class="form-field">
+      <label data-t="color">اللون</label>
+      <div class="color-picker-row" id="colorPicker"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeAddSectionModal()" data-t="cancel">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveSection()" data-t="save">حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Reset Modal ===== -->
+<div class="modal danger-modal" id="resetModal">
+  <div class="modal-content">
+    <div class="danger-icon">⚠️</div>
+    <h3 style="text-align:center;" data-t="resetTitle">هل أنت متأكد؟</h3>
+    <p class="modal-desc" style="text-align:center;" data-t="resetDesc">
+      سيتم مسح كل البيانات والأقسام بشكل نهائي. لا يمكن التراجع.
+    </p>
+    <div class="form-field">
+      <label data-t="resetConfirm">اكتب كلمة "موافق" للتأكيد:</label>
+      <input type="text" id="resetConfirmInput" oninput="checkResetConfirm()" autocomplete="off">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeResetModal()" data-t="cancel">إلغاء</button>
+      <button class="btn btn-danger" id="resetConfirmBtn" onclick="resetAll()" disabled style="opacity:0.5; cursor:not-allowed;" data-t="resetBtn">مسح كل شيء</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Prayer Times Modal ===== -->
+<div class="modal" id="prayerModal">
+  <div class="modal-content">
+    <h3>🕌 <span data-t="prayerTimesTitle">مواقيت الصلاة</span></h3>
+    <p class="modal-desc" data-t="prayerDesc">حسب طريقة أم القرى — مكة المكرمة</p>
+
+    <div class="location-bar">
+      <span class="loc-icon">📍</span>
+      <input id="prayerCityInput" data-t-ph="enterCity" placeholder="اكتب اسم المدينة..." onkeydown="if(event.key==='Enter')fetchPrayerByCity()">
+      <button class="btn btn-soft" style="padding:6px 12px;" onclick="fetchPrayerByCity()" data-t="search">بحث</button>
+      <button class="btn btn-soft" style="padding:6px 10px;" onclick="fetchPrayerByGeo()" title="استخدام موقعي">📡</button>
+    </div>
+
+    <div id="prayerLocationLabel" style="font-size:12px; color:var(--text-soft); margin-bottom:12px; text-align:center;"></div>
+
+    <div id="prayerContent">
+      <div class="loading">
+        <div class="spinner"></div>
+        <span data-t="loadingPrayer">جارٍ تحديد موقعك...</span>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closePrayerModal()" data-t="close">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Calculator Modal ===== -->
+<div class="modal" id="calcModal">
+  <div class="modal-content">
+    <h3 id="calcTitle">🧮 <span data-t="calculator">آلة حاسبة</span></h3>
+
+    <div class="calc-tabs">
+      <button class="calc-tab active" id="tabCalc" onclick="switchCalcTab('calc')" data-t="basicCalc">حاسبة</button>
+      <button class="calc-tab" id="tabConv" onclick="switchCalcTab('conv')" data-t="currencyConv">تحويل عملات</button>
+    </div>
+
+    <div id="calcPaneCalc">
+      <div class="calc-display">
+        <div class="calc-prev" id="calcPrev"></div>
+        <div class="calc-current" id="calcCurrent">0</div>
+      </div>
+      <div class="calc-grid">
+        <button class="calc-btn clear" onclick="calcClear()">AC</button>
+        <button class="calc-btn op" onclick="calcBackspace()">⌫</button>
+        <button class="calc-btn op" onclick="calcPercent()">%</button>
+        <button class="calc-btn op" onclick="calcOp('/')">÷</button>
+
+        <button class="calc-btn" onclick="calcDigit('7')">7</button>
+        <button class="calc-btn" onclick="calcDigit('8')">8</button>
+        <button class="calc-btn" onclick="calcDigit('9')">9</button>
+        <button class="calc-btn op" onclick="calcOp('*')">×</button>
+
+        <button class="calc-btn" onclick="calcDigit('4')">4</button>
+        <button class="calc-btn" onclick="calcDigit('5')">5</button>
+        <button class="calc-btn" onclick="calcDigit('6')">6</button>
+        <button class="calc-btn op" onclick="calcOp('-')">−</button>
+
+        <button class="calc-btn" onclick="calcDigit('1')">1</button>
+        <button class="calc-btn" onclick="calcDigit('2')">2</button>
+        <button class="calc-btn" onclick="calcDigit('3')">3</button>
+        <button class="calc-btn op" onclick="calcOp('+')">+</button>
+
+        <button class="calc-btn span-2" onclick="calcDigit('0')">0</button>
+        <button class="calc-btn" onclick="calcDigit('.')">.</button>
+        <button class="calc-btn eq" onclick="calcEquals()">=</button>
+      </div>
+    </div>
+
+    <div id="calcPaneConv" style="display:none;">
+      <div class="conv-row">
+        <input type="number" class="conv-input" id="convFromAmount" value="100" oninput="convertCurrency('from')">
+        <select class="conv-select" id="convFromCur" onchange="convertCurrency('from')"></select>
+      </div>
+      <div class="conv-swap">
+        <button class="conv-swap-btn" onclick="swapCurrency()">⇅</button>
+      </div>
+      <div class="conv-row">
+        <input type="number" class="conv-input" id="convToAmount" value="0" oninput="convertCurrency('to')">
+        <select class="conv-select" id="convToCur" onchange="convertCurrency('from')"></select>
+      </div>
+      <div class="conv-rate" id="convRate"></div>
+      <div style="margin-top:14px;">
+        <button class="btn btn-soft" style="width:100%;" onclick="refreshRates()" data-t="refreshRates">🔄 تحديث الأسعار</button>
+      </div>
+      <div style="font-size:11px; color:var(--text-soft); margin-top:8px; text-align:center;" id="convUpdated"></div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeCalcModal()" data-t="close">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== End of Service Modal ===== -->
+<div class="modal" id="eosModal">
+  <div class="modal-content">
+    <h3>📋 <span data-t="eosTitle">حاسبة نهاية الخدمة</span></h3>
+    <p class="modal-desc" data-t="eosDesc">حسب نظام العمل السعودي (المواد 84-86)</p>
+
+    <div class="form-field">
+      <label data-t="eosNationality">الجنسية</label>
+      <div class="seg-control">
+        <button class="seg-option active" id="natSaudi" onclick="setEosNat('saudi')" data-t="saudi">سعودي 🇸🇦</button>
+        <button class="seg-option" id="natOther" onclick="setEosNat('other')" data-t="nonSaudi">غير سعودي</button>
+      </div>
+    </div>
+
+    <div class="form-field">
+      <label data-t="eosSalary">آخر راتب شهري (الأجر الفعلي)</label>
+      <input type="number" id="eosSalary" placeholder="0" oninput="calculateEos()" min="0">
+    </div>
+
+    <div class="form-field">
+      <label data-t="eosYears">سنوات الخدمة</label>
+      <input type="number" id="eosYears" placeholder="0" oninput="calculateEos()" min="0" step="0.01">
+      <div style="font-size:11px; color:var(--text-soft); margin-top:4px;" data-t="eosYearsHint">يمكن إدخال كسور (مثلاً: 5.5 لخمس سنوات ونصف)</div>
+    </div>
+
+    <div class="form-field">
+      <label data-t="eosReason">سبب انتهاء الخدمة</label>
+      <select id="eosReason" onchange="calculateEos()">
+        <option value="terminated" data-t-opt="reasonTerminated">إنهاء من صاحب العمل</option>
+        <option value="resigned" data-t-opt="reasonResigned">استقالة</option>
+        <option value="contract_end" data-t-opt="reasonContractEnd">انتهاء العقد محدد المدة</option>
+      </select>
+    </div>
+
+    <div class="form-field">
+      <label data-t="eosUnusedLeave">أيام الإجازة المتبقية (اختياري)</label>
+      <input type="number" id="eosLeaveDays" placeholder="0" oninput="calculateEos()" min="0">
+    </div>
+
+    <div class="eos-results" id="eosResults" style="display:none;"></div>
+
+    <div class="eos-info" data-t="eosInfo">
+      💡 ملاحظة: تُحسب المكافأة على أساس الأجر الفعلي (الراتب الأساسي + البدلات الثابتة). الحساب تقديري وفقاً للنظام، وقد تختلف النتيجة حسب تفاصيل العقد.
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeEosModal()" data-t="close">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ============================================================
+  // TRANSLATIONS
+  // ============================================================
+  const T = {
+    ar: {
+      settings: 'الإعدادات', settingsTitle: 'الإعدادات',
+      importExcel: 'استيراد Excel', exportExcel: 'تصدير Excel',
+      exportPDF: 'تصدير PDF', print: 'طباعة', resetAll: 'مسح الكل',
+      calculator: 'آلة حاسبة', basicCalc: 'حاسبة', currencyConv: 'تحويل عملات',
+      prayerTimes: 'مواقيت الصلاة', prayerTimesTitle: 'مواقيت الصلاة',
+      prayerDesc: 'حسب طريقة أم القرى — مكة المكرمة',
+      enterCity: 'اكتب اسم المدينة...', search: 'بحث',
+      loadingPrayer: 'جارٍ تحديد موقعك...',
+      endOfService: 'نهاية الخدمة', eosTitle: 'حاسبة نهاية الخدمة',
+      eosDesc: 'حسب نظام العمل السعودي (المواد 84-86)',
+      eosNationality: 'الجنسية', saudi: 'سعودي 🇸🇦', nonSaudi: 'غير سعودي',
+      eosSalary: 'آخر راتب شهري (الأجر الفعلي)',
+      eosYears: 'سنوات الخدمة',
+      eosYearsHint: 'يمكن إدخال كسور (مثلاً: 5.5 لخمس سنوات ونصف)',
+      eosReason: 'سبب انتهاء الخدمة',
+      reasonTerminated: 'إنهاء من صاحب العمل', reasonResigned: 'استقالة',
+      reasonContractEnd: 'انتهاء العقد محدد المدة',
+      eosUnusedLeave: 'أيام الإجازة المتبقية (اختياري)',
+      eosInfo: '💡 ملاحظة: تُحسب المكافأة على أساس الأجر الفعلي (الراتب الأساسي + البدلات الثابتة). الحساب تقديري وفقاً للنظام.',
+      totalIncome: 'إجمالي الدخل', totalExpense: 'إجمالي المصاريف',
+      netBalance: 'الرصيد المتبقي', savingsRate: 'نسبة الادخار',
+      addSection: 'إضافة قسم جديد', theme: 'المظهر',
+      themeLight: 'فاتح ☀️', themeDark: 'داكن 🌙',
+      language: 'اللغة', accentColor: 'اللون الرئيسي', currency: 'العملة',
+      numberStyle: 'شكل الأرقام', datesSection: 'التواريخ',
+      showDates: 'إظهار تاريخ المشتريات', calendarType: 'نوع التقويم',
+      gregorian: 'ميلادي', hijri: 'هجري', dataActions: 'البيانات',
+      saveBackup: 'حفظ نسخة احتياطية', loadBackup: 'استيراد نسخة احتياطية',
+      loadTemplate: 'تحميل قالب جاهز',
+      settingsTip: '💡 كل البيانات محفوظة على جهازك تلقائياً.',
+      addSectionTitle: 'إضافة قسم جديد', sectionName: 'اسم القسم',
+      sectionNamePh: 'مثلاً: راتب الشهر، فواتير، مصاريف يومية...',
+      sectionType: 'النوع', typeIncome: 'دخل', typeExpense: 'مصاريف',
+      typeIncomeOpt: '💰 دخل', typeExpenseOpt: '💸 مصاريف',
+      icon: 'الأيقونة', color: 'اللون',
+      cancel: 'إلغاء', save: 'حفظ', close: 'إغلاق',
+      resetTitle: 'هل أنت متأكد؟',
+      resetDesc: 'سيتم مسح كل البيانات والأقسام بشكل نهائي. لا يمكن التراجع.',
+      resetConfirm: 'اكتب كلمة "موافق" للتأكيد:',
+      resetConfirmWord: 'موافق', resetBtn: 'مسح كل شيء',
+      tableItem: 'البند', tableAmount: 'المبلغ', tableDate: 'التاريخ',
+      itemPlaceholder: 'اكتب اسم البند...', addRow: 'إضافة بند',
+      emptyTitle: 'ابدأ ميزانيتك',
+      emptyDesc: 'أضف قسم للدخل أو المصاريف وابدأ بتنظيم أموالك',
+      monthsGreg: ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'],
+      monthsHijri: ['محرم','صفر','ربيع الأول','ربيع الثاني','جمادى الأولى','جمادى الآخرة','رجب','شعبان','رمضان','شوال','ذو القعدة','ذو الحجة'],
+      daysOfWeek: ['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'],
+      summarySheet: 'الملخص', colSection: 'القسم', colType: 'النوع', colTotal: 'المجموع',
+      curSAR: 'ريال سعودي ﷼', curUSD: 'دولار أمريكي ($)',
+      curAED: 'درهم إماراتي (د.إ)', curKWD: 'دينار كويتي (د.ك)',
+      curQAR: 'ريال قطري (ر.ق)', curOMR: 'ريال عماني (ر.ع)',
+      curBHD: 'دينار بحريني (د.ب)', curEGP: 'جنيه مصري (ج.م)',
+      curJOD: 'دينار أردني (د.أ)', curEUR: 'يورو (€)', curGBP: 'جنيه استرليني (£)',
+      toastSectionAdded: 'تم إضافة القسم', toastSectionDeleted: 'تم حذف القسم',
+      toastReset: 'تم مسح كل البيانات', toastTemplateLoaded: 'تم تحميل القالب',
+      toastBackupSaved: 'تم حفظ النسخة', toastImported: 'تم استيراد البيانات',
+      toastExcelExported: 'تم تصدير ملف Excel', toastPDFExported: 'تم تصدير ملف PDF',
+      toastRatesUpdated: 'تم تحديث أسعار الصرف',
+      confirmDeleteSection: 'هل تريد حذف هذا القسم وكل بياناته؟',
+      confirmReplaceTemplate: 'هذا سيحذف بياناتك الحالية ويحمّل قالب جاهز. متأكد؟',
+      confirmExcelReplace: 'هل تريد استبدال البيانات الحالية؟ (إلغاء = إضافة للموجود)',
+      excelNoData: 'لم يتم العثور على بيانات صالحة في الملف.',
+      invalidFile: 'ملف غير صالح', enterSectionName: 'اكتب اسم القسم',
+      defaultTitle: 'ميزانيتي', sectionsCount: 'قسم',
+      prayerFajr: 'الفجر', prayerSunrise: 'الشروق', prayerDhuhr: 'الظهر',
+      prayerAsr: 'العصر', prayerMaghrib: 'المغرب', prayerIsha: 'العشاء',
+      eosBaseGratuity: 'المكافأة الأساسية', eosLeaveCompensation: 'بدل الإجازة',
+      eosTotal: 'الإجمالي المستحق', eosNotEligible: 'لا يستحق المكافأة (أقل من سنتين)',
+      eosFullEligibility: 'استحقاق كامل',
+      eosPartialThird: 'استحقاق ثلث المكافأة (2-5 سنوات استقالة)',
+      eosPartialTwoThirds: 'استحقاق ثلثي المكافأة (5-10 سنوات استقالة)',
+      eosFiveYearsRule: 'أول 5 سنوات: نصف راتب × عدد السنوات',
+      eosAfterFive: 'ما بعد 5 سنوات: راتب كامل × عدد السنوات',
+      ratesError: 'تعذر تحديث الأسعار. سيتم استخدام أسعار محفوظة.',
+      prayerError: 'تعذر جلب مواقيت الصلاة. تأكد من اسم المدينة أو حاول لاحقاً.',
+      locationDenied: 'تم رفض الوصول للموقع. يمكنك كتابة اسم المدينة يدوياً.'
+    },
+    en: {
+      settings: 'Settings', settingsTitle: 'Settings',
+      importExcel: 'Import Excel', exportExcel: 'Export Excel',
+      exportPDF: 'Export PDF', print: 'Print', resetAll: 'Reset All',
+      calculator: 'Calculator', basicCalc: 'Calculator', currencyConv: 'Currency',
+      prayerTimes: 'Prayer Times', prayerTimesTitle: 'Prayer Times',
+      prayerDesc: 'Umm al-Qura method — Makkah',
+      enterCity: 'Enter city name...', search: 'Search',
+      loadingPrayer: 'Detecting your location...',
+      endOfService: 'End of Service', eosTitle: 'End of Service Calculator',
+      eosDesc: 'Per Saudi Labor Law (Articles 84-86)',
+      eosNationality: 'Nationality', saudi: 'Saudi 🇸🇦', nonSaudi: 'Non-Saudi',
+      eosSalary: 'Last monthly salary (effective wage)',
+      eosYears: 'Years of service',
+      eosYearsHint: 'Decimals allowed (e.g., 5.5 for five and a half years)',
+      eosReason: 'Reason for ending service',
+      reasonTerminated: 'Terminated by employer', reasonResigned: 'Resignation',
+      reasonContractEnd: 'Fixed-term contract ended',
+      eosUnusedLeave: 'Unused leave days (optional)',
+      eosInfo: '💡 Note: Calculated on effective wage (basic + fixed allowances). Estimate per regulation.',
+      totalIncome: 'Total Income', totalExpense: 'Total Expenses',
+      netBalance: 'Net Balance', savingsRate: 'Savings Rate',
+      addSection: 'Add New Section', theme: 'Theme',
+      themeLight: 'Light ☀️', themeDark: 'Dark 🌙',
+      language: 'Language', accentColor: 'Accent Color', currency: 'Currency',
+      numberStyle: 'Number Style', datesSection: 'Dates',
+      showDates: 'Show purchase dates', calendarType: 'Calendar type',
+      gregorian: 'Gregorian', hijri: 'Hijri', dataActions: 'Data',
+      saveBackup: 'Save Backup', loadBackup: 'Load Backup',
+      loadTemplate: 'Load Template',
+      settingsTip: '💡 All data is saved on your device automatically.',
+      addSectionTitle: 'Add New Section', sectionName: 'Section Name',
+      sectionNamePh: 'e.g., Monthly salary, bills, daily expenses...',
+      sectionType: 'Type', typeIncome: 'Income', typeExpense: 'Expense',
+      typeIncomeOpt: '💰 Income', typeExpenseOpt: '💸 Expense',
+      icon: 'Icon', color: 'Color',
+      cancel: 'Cancel', save: 'Save', close: 'Close',
+      resetTitle: 'Are you sure?',
+      resetDesc: 'All data and sections will be permanently deleted. This cannot be undone.',
+      resetConfirm: 'Type "RESET" to confirm:',
+      resetConfirmWord: 'RESET', resetBtn: 'Delete Everything',
+      tableItem: 'Item', tableAmount: 'Amount', tableDate: 'Date',
+      itemPlaceholder: 'Type item name...', addRow: 'Add Item',
+      emptyTitle: 'Start your budget',
+      emptyDesc: 'Add an income or expense section to get started',
+      monthsGreg: ['January','February','March','April','May','June','July','August','September','October','November','December'],
+      monthsHijri: ['Muharram','Safar','Rabi I','Rabi II','Jumada I','Jumada II','Rajab','Shaban','Ramadan','Shawwal','Dhul-Qadah','Dhul-Hijjah'],
+      daysOfWeek: ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
+      summarySheet: 'Summary', colSection: 'Section', colType: 'Type', colTotal: 'Total',
+      curSAR: 'Saudi Riyal ﷼', curUSD: 'US Dollar ($)',
+      curAED: 'UAE Dirham (AED)', curKWD: 'Kuwaiti Dinar (KWD)',
+      curQAR: 'Qatari Riyal (QAR)', curOMR: 'Omani Rial (OMR)',
+      curBHD: 'Bahraini Dinar (BHD)', curEGP: 'Egyptian Pound (EGP)',
+      curJOD: 'Jordanian Dinar (JOD)', curEUR: 'Euro (€)', curGBP: 'British Pound (£)',
+      toastSectionAdded: 'Section added', toastSectionDeleted: 'Section deleted',
+      toastReset: 'All data cleared', toastTemplateLoaded: 'Template loaded',
+      toastBackupSaved: 'Backup saved', toastImported: 'Data imported',
+      toastExcelExported: 'Excel file exported', toastPDFExported: 'PDF file exported',
+      toastRatesUpdated: 'Exchange rates updated',
+      confirmDeleteSection: 'Delete this section and all its data?',
+      confirmReplaceTemplate: 'This will replace your current data with a template. Continue?',
+      confirmExcelReplace: 'Replace current data? (Cancel = append to existing)',
+      excelNoData: 'No valid data found in the file.',
+      invalidFile: 'Invalid file', enterSectionName: 'Enter section name',
+      defaultTitle: 'My Budget', sectionsCount: 'sections',
+      prayerFajr: 'Fajr', prayerSunrise: 'Sunrise', prayerDhuhr: 'Dhuhr',
+      prayerAsr: 'Asr', prayerMaghrib: 'Maghrib', prayerIsha: 'Isha',
+      eosBaseGratuity: 'Base Gratuity', eosLeaveCompensation: 'Leave Compensation',
+      eosTotal: 'Total Due', eosNotEligible: 'Not eligible (less than 2 years)',
+      eosFullEligibility: 'Full eligibility',
+      eosPartialThird: 'One-third gratuity (2-5 years, resigned)',
+      eosPartialTwoThirds: 'Two-thirds gratuity (5-10 years, resigned)',
+      eosFiveYearsRule: 'First 5 years: half month × years',
+      eosAfterFive: 'After 5 years: full month × years',
+      ratesError: 'Could not update rates. Using cached rates.',
+      prayerError: 'Could not fetch prayer times. Check city name or try later.',
+      locationDenied: 'Location access denied. Type city name manually.'
+    }
+  };
+
+  function tr(key) {
+    return (T[state.settings.language] && T[state.settings.language][key]) || T.ar[key] || key;
+  }
+
+  // ============================================================
+  // STATE
+  // ============================================================
+  let state = {
+    title: 'ميزانيتي',
+    sections: [],
+    settings: {
+      theme: 'dark',
+      accent: '#1a1a2e',
+      currency: 'SAR',
+      numberStyle: 'latin',
+      language: 'ar',
+      showDates: false,
+      calendar: 'gregorian'
+    },
+    cache: {
+      rates: null,
+      ratesUpdated: null,
+      prayerCity: ''
+    }
+  };
+
+  let selectedIcon = '💼';
+  let selectedColor = '#2563eb';
+
+  const ICONS = ['💰','💵','💸','🏦','💳','📊','📈','📉','🛒','🍔','🏠','🚗','⛽','✈️','🏥','💊','📱','💻','🎓','📚','👶','👨‍👩‍👧','💡','💧','🔥','🎁','🎉','☕','🍕','🛍️','💼','📝','✂️','🧾','💎','🏋️','🎮','🎬','📺','🎵','🐱','🌸','🌟','⭐','🔔','📦','🚚','🛵','🍎','🥗'];
+  const COLORS = ['#2563eb','#dc2626','#16a34a','#ea580c','#7c3aed','#db2777','#0891b2','#65a30d','#ca8a04','#475569','#1a1a2e','#0f3460'];
+  const ACCENTS = ['#1a1a2e','#0f3460','#2563eb','#7c3aed','#16a34a','#dc2626','#ea580c','#0891b2','#db2777','#475569','#000000','#92400e'];
+
+  const RIYAL_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1124.14 1256.39" style="width:0.85em;height:0.85em;display:inline-block;vertical-align:-0.1em;fill:currentColor;margin:0 2px;"><path d="M699.62,1113.02h0c-20.06,44.48-33.32,92.75-38.4,143.37l424.51-90.24c20.06-44.47,33.31-92.75,38.4-143.37l-424.51,90.24Z"/><path d="M1085.73,895.8c20.06-44.47,33.32-92.75,38.4-143.37l-330.68,70.33v-135.2l292.27-62.11c20.06-44.47,33.32-92.75,38.4-143.37l-330.68,70.27V66.13c-50.67,28.45-95.67,66.32-132.25,110.99v403.35l-132.25,28.11V0c-50.67,28.44-95.67,66.32-132.25,110.99v525.69l-295.91,62.88c-20.06,44.47-33.33,92.75-38.42,143.37l334.33-71.05v170.26l-358.3,76.14c-20.06,44.47-33.32,92.75-38.4,143.37l375.04-79.7c30.53-6.35,56.77-24.4,73.83-49.24l68.78-101.97v-.02c7.14-10.55,11.3-23.27,11.3-36.97v-149.98l132.25-28.11v270.4l424.53-90.28Z"/></svg>`;
+
+  const arabicNums = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
+
+  function formatNumber(num) {
+    if (isNaN(num) || num === null || num === '') num = 0;
+    const formatted = Number(num).toLocaleString('en-US', { maximumFractionDigits: 2 });
+    if (state.settings.numberStyle === 'arabic') {
+      return formatted.replace(/[0-9]/g, d => arabicNums[d]);
+    }
+    return formatted;
+  }
+
+  function getCurrencyHTML() {
+    return state.settings.currency === 'SAR' ? RIYAL_SVG : state.settings.currency;
+  }
+
+  function formatCurrency(num) {
+    return formatNumber(num) + ' ' + getCurrencyHTML();
+  }
+
+  function escapeHtml(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ============================================================
+  // DATES & CALENDAR
+  // ============================================================
+  function gregorianToHijri(date) {
+    try {
+      const fmt = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', {
+        year: 'numeric', month: 'numeric', day: 'numeric'
+      });
+      const parts = fmt.formatToParts(date);
+      let y = 0, m = 0, d = 0;
+      parts.forEach(p => {
+        if (p.type === 'year') y = parseInt(p.value);
+        else if (p.type === 'month') m = parseInt(p.value);
+        else if (p.type === 'day') d = parseInt(p.value);
+      });
+      return { year: y, month: m, day: d };
+    } catch(e) { return null; }
+  }
+
+  function formatDateForDisplay(isoDate) {
+    if (!isoDate) return '';
+    const d = new Date(isoDate);
+    if (isNaN(d.getTime())) return '';
+    const lang = state.settings.language;
+    if (state.settings.calendar === 'hijri') {
+      const h = gregorianToHijri(d);
+      if (!h) return isoDate;
+      const monthName = T[lang].monthsHijri[h.month - 1] || '';
+      return `${formatNumber(h.day)} ${monthName} ${formatNumber(h.year)}${lang === 'ar' ? ' هـ' : ' AH'}`;
+    } else {
+      const months = T[lang].monthsGreg;
+      return `${formatNumber(d.getDate())} ${months[d.getMonth()]} ${formatNumber(d.getFullYear())}`;
+    }
+  }
+
+  function formatHeaderDate() {
+    const d = new Date();
+    const lang = state.settings.language;
+    const dayName = T[lang].daysOfWeek[d.getDay()];
+    return `${dayName} • ${formatDateForDisplay(d.toISOString().split('T')[0])}`;
+  }
+
+  function todayISO() { return new Date().toISOString().split('T')[0]; }
+
+  // ============================================================
+  // CLOCK
+  // ============================================================
+  function updateClock() {
+    const now = new Date();
+    const hours = now.getHours();
+    const minutes = String(now.getMinutes()).padStart(2,'0');
+    const seconds = String(now.getSeconds()).padStart(2,'0');
+    const lang = state.settings.language;
+    const isPM = hours >= 12;
+    const h12 = hours % 12 || 12;
+    const meridiem = lang === 'ar' ? (isPM ? 'م' : 'ص') : (isPM ? 'PM' : 'AM');
+
+    const timeEl = document.getElementById('clockTime');
+    if (timeEl) {
+      timeEl.innerHTML = `${formatNumber(String(h12).padStart(2,'0'))}:${formatNumber(minutes)}:${formatNumber(seconds)} <span class="clock-meridiem">${meridiem}</span>`;
+    }
+
+    const dayName = T[lang].daysOfWeek[now.getDay()];
+    const dateEl = document.getElementById('clockDate');
+    if (dateEl) {
+      dateEl.textContent = `${dayName}`;
+    }
+  }
+
+  // ============================================================
+  // STORAGE
+  // ============================================================
+  function save() {
+    try { localStorage.setItem('budgetAppData', JSON.stringify(state)); } catch(e) {}
+  }
+
+  function load() {
+    try {
+      const raw = localStorage.getItem('budgetAppData');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        state = Object.assign({}, state, parsed);
+        state.settings = Object.assign({
+          theme: 'dark', accent: '#1a1a2e', currency: 'SAR',
+          numberStyle: 'latin', language: 'ar',
+          showDates: false, calendar: 'gregorian'
+        }, parsed.settings || {});
+        state.cache = Object.assign({ rates: null, ratesUpdated: null, prayerCity: '' }, parsed.cache || {});
+        if (state.settings.currency === 'ر.س') state.settings.currency = 'SAR';
+        if (!state.title) state.title = 'ميزانيتي';
+      }
+    } catch(e) {}
+  }
+
+  // ============================================================
+  // THEME
+  // ============================================================
+  function setTheme(theme) {
+    state.settings.theme = theme;
+    document.body.setAttribute('data-theme', theme);
+    document.getElementById('themeToggle').textContent = theme === 'dark' ? '☀️' : '🌙';
+    save();
+    applyLanguage();
+  }
+
+  function toggleTheme() {
+    setTheme(state.settings.theme === 'dark' ? 'light' : 'dark');
+  }
+
+  // ============================================================
+  // TITLE
+  // ============================================================
+  function updateAppTitle(val) {
+    state.title = val.trim() || tr('defaultTitle');
+    document.title = state.title;
+    save();
+  }
+
+  // ============================================================
+  // SECTIONS
+  // ============================================================
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).substr(2,5); }
+
+  function addSection(name, type, icon, color) {
+    state.sections.push({ id: uid(), name, type, icon, color, collapsed: false, rows: [] });
+    save();
+    render();
+  }
+
+  function deleteSection(id) {
+    if (!confirm(tr('confirmDeleteSection'))) return;
+    state.sections = state.sections.filter(s => s.id !== id);
+    save();
+    render();
+    showToast(tr('toastSectionDeleted'));
+  }
+
+  function toggleSection(id) {
+    const s = state.sections.find(x => x.id === id);
+    if (s) { s.collapsed = !s.collapsed; save(); render(); }
+  }
+
+  function addRow(sectionId) {
+    const s = state.sections.find(x => x.id === sectionId);
+    if (s) {
+      s.rows.push({
+        id: uid(), name: '', amount: 0,
+        date: state.settings.showDates ? todayISO() : ''
+      });
+      save();
+      render();
+      setTimeout(() => {
+        const inputs = document.querySelectorAll(`[data-section="${sectionId}"] .cell-input[data-field="name"]`);
+        if (inputs.length) inputs[inputs.length - 1].focus();
+      }, 50);
+    }
+  }
+
+  function deleteRow(sectionId, rowId) {
+    const s = state.sections.find(x => x.id === sectionId);
+    if (s) { s.rows = s.rows.filter(r => r.id !== rowId); save(); render(); }
+  }
+
+  function updateRow(sectionId, rowId, field, value) {
+    const s = state.sections.find(x => x.id === sectionId);
+    if (s) {
+      const r = s.rows.find(x => x.id === rowId);
+      if (r) {
+        if (field === 'amount') {
+          let cleaned = String(value).replace(/[٠-٩]/g, d => arabicNums.indexOf(d).toString());
+          cleaned = cleaned.replace(/[^\d.\-]/g, '');
+          r[field] = parseFloat(cleaned) || 0;
+        } else {
+          r[field] = value;
+        }
+        save();
+        updateTotals();
+      }
+    }
+  }
+
+  function updateSectionName(id, name) {
+    const s = state.sections.find(x => x.id === id);
+    if (s) { s.name = name; save(); }
+  }
+
+  // ============================================================
+  // RENDER
+  // ============================================================
+  function render() {
+    applyLanguage();
+    const container = document.getElementById('sectionsContainer');
+
+    if (state.sections.length === 0) {
+      container.innerHTML = `
+        <div class="section">
+          <div class="empty-state">
+            <div class="emoji">📊</div>
+            <h3>${tr('emptyTitle')}</h3>
+            <p>${tr('emptyDesc')}</p>
+            <button class="btn btn-primary" onclick="loadDefaultTemplate()">📋 ${tr('loadTemplate')}</button>
+          </div>
+        </div>
+      `;
+      updateTotals();
+      return;
+    }
+
+    container.innerHTML = state.sections.map(s => renderSection(s)).join('');
+    updateTotals();
+    applyAccent();
+  }
+
+  function renderSection(s) {
+    const total = s.rows.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
+    const showDates = state.settings.showDates;
+
+    return `
+      <div class="section ${s.collapsed ? 'collapsed' : ''}" data-section="${s.id}">
+        <div class="section-header" onclick="toggleSection('${s.id}')">
+          <div class="section-title">
+            <div class="section-icon" style="background:${s.color}22; color:${s.color};">${s.icon}</div>
+            <input class="cell-input" style="font-weight:700; font-size:16px; min-width:150px;"
+                   value="${escapeHtml(s.name)}"
+                   onclick="event.stopPropagation()"
+                   onchange="updateSectionName('${s.id}', this.value)">
+          </div>
+          <div class="section-actions" onclick="event.stopPropagation()">
+            <span class="section-total" style="color:${s.type === 'income' ? 'var(--green)' : 'var(--red)'}">
+              ${s.type === 'income' ? '+' : '−'} ${formatCurrency(total)}
+            </span>
+            <button class="btn-icon" onclick="deleteSection('${s.id}')">🗑️</button>
+            <span class="toggle-arrow">▼</span>
+          </div>
+        </div>
+        <div class="section-body">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th class="col-num">#</th>
+                  <th>${tr('tableItem')}</th>
+                  ${showDates ? `<th class="col-date">${tr('tableDate')}</th>` : ''}
+                  <th class="col-amount cell-amount">${tr('tableAmount')}</th>
+                  <th class="col-action"></th>
+                </tr>
+              </thead>
+              <tbody>
+                ${s.rows.map((r, i) => `
+                  <tr data-row="${r.id}">
+                    <td class="col-num">${formatNumber(i + 1)}</td>
+                    <td>
+                      <input class="cell-input" data-field="name"
+                             value="${escapeHtml(r.name)}"
+                             placeholder="${tr('itemPlaceholder')}"
+                             oninput="updateRow('${s.id}', '${r.id}', 'name', this.value)">
+                    </td>
+                    ${showDates ? `
+                      <td class="col-date">
+                        <input type="date" class="cell-input cell-date" data-field="date"
+                               value="${r.date || ''}"
+                               onchange="updateRow('${s.id}', '${r.id}', 'date', this.value)">
+                      </td>
+                    ` : ''}
+                    <td class="col-amount">
+                      <input class="cell-input cell-amount" data-field="amount"
+                             value="${r.amount || ''}"
+                             placeholder="0"
+                             type="text"
+                             inputmode="decimal"
+                             oninput="updateRow('${s.id}', '${r.id}', 'amount', this.value)">
+                    </td>
+                    <td class="col-action">
+                      <button class="btn-icon" onclick="deleteRow('${s.id}', '${r.id}')">✕</button>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+          <button class="add-row-btn" onclick="addRow('${s.id}')">➕ ${tr('addRow')}</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function updateTotals() {
+    let income = 0, expense = 0;
+    state.sections.forEach(s => {
+      const total = s.rows.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
+      if (s.type === 'income') income += total;
+      else expense += total;
+    });
+    const balance = income - expense;
+    const savingsRate = income > 0 ? (balance / income * 100) : 0;
+
+    document.getElementById('totalIncome').innerHTML = formatCurrency(income);
+    document.getElementById('totalExpense').innerHTML = formatCurrency(expense);
+
+    const balEl = document.getElementById('netBalance');
+    balEl.innerHTML = formatCurrency(balance);
+    balEl.className = 'summary-value ' + (balance >= 0 ? 'positive' : 'negative');
+
+    const rateEl = document.getElementById('savingsRate');
+    rateEl.innerHTML = formatNumber(savingsRate.toFixed(1)) + (state.settings.numberStyle === 'arabic' ? '٪' : '%');
+    rateEl.className = 'summary-value ' + (savingsRate >= 0 ? 'positive' : 'negative');
+
+    state.sections.forEach(s => {
+      const el = document.querySelector(`[data-section="${s.id}"] .section-total`);
+      if (el) {
+        const total = s.rows.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
+        el.innerHTML = (s.type === 'income' ? '+ ' : '− ') + formatCurrency(total);
+      }
+    });
+  }
+
+  // ============================================================
+  // LANGUAGE
+  // ============================================================
+  function setLanguage(lang) {
+    state.settings.language = lang;
+    save();
+    applyLanguage();
+    render();
+    document.getElementById('currentDate').textContent = formatHeaderDate();
+    updateClock();
+  }
+
+  function applyLanguage() {
+    const lang = state.settings.language;
+    document.documentElement.setAttribute('lang', lang);
+    document.body.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+    document.title = state.title || tr('defaultTitle');
+
+    document.querySelectorAll('[data-t]').forEach(el => {
+      el.textContent = tr(el.getAttribute('data-t'));
+    });
+    document.querySelectorAll('[data-t-ph]').forEach(el => {
+      el.placeholder = tr(el.getAttribute('data-t-ph'));
+    });
+    document.querySelectorAll('[data-t-opt]').forEach(el => {
+      el.textContent = tr(el.getAttribute('data-t-opt'));
+    });
+
+    const setActive = (id, cond) => { const el = document.getElementById(id); if (el) el.classList.toggle('active', cond); };
+    setActive('langAr', lang === 'ar');
+    setActive('langEn', lang === 'en');
+    setActive('numLatin', state.settings.numberStyle === 'latin');
+    setActive('numArabic', state.settings.numberStyle === 'arabic');
+    setActive('calGregorian', state.settings.calendar === 'gregorian');
+    setActive('calHijri', state.settings.calendar === 'hijri');
+    setActive('themeLight', state.settings.theme === 'light');
+    setActive('themeDark', state.settings.theme === 'dark');
+    const showDates = document.getElementById('showDatesToggle');
+    if (showDates) showDates.classList.toggle('active', state.settings.showDates);
+  }
+
+  // ============================================================
+  // SETTINGS
+  // ============================================================
+  function openSettings() {
+    document.getElementById('settingsPanel').classList.add('open');
+    document.getElementById('overlay').classList.add('show');
+    applyLanguage();
+  }
+
+  function closeSettings() {
+    document.getElementById('settingsPanel').classList.remove('open');
+    document.getElementById('overlay').classList.remove('show');
+  }
+
+  function closeAllModals() {
+    closeSettings();
+    closeAddSectionModal();
+    closeResetModal();
+    closePrayerModal();
+    closeCalcModal();
+    closeEosModal();
+  }
+
+  function renderAccentColors() {
+    const grid = document.getElementById('accentColors');
+    grid.innerHTML = ACCENTS.map(c => `
+      <div class="accent-option ${state.settings.accent === c ? 'active' : ''}"
+           style="background:${c}" onclick="setAccent('${c}')"></div>
+    `).join('');
+  }
+
+  function setAccent(color) {
+    state.settings.accent = color;
+    save();
+    applyAccent();
+    renderAccentColors();
+  }
+
+  function applyAccent() {
+    if (state.settings.theme === 'light') {
+      document.documentElement.style.setProperty('--primary', state.settings.accent);
+    } else {
+      document.documentElement.style.setProperty('--primary', '#4f8eff');
+    }
+    const header = document.querySelector('.app-header');
+    if (header) {
+      header.style.background = `linear-gradient(135deg, ${state.settings.accent} 0%, ${shadeColor(state.settings.accent, -15)} 100%)`;
+    }
+  }
+
+  function shadeColor(color, percent) {
+    const num = parseInt(color.replace("#",""), 16);
+    const amt = Math.round(2.55 * percent);
+    const R = (num >> 16) + amt;
+    const G = (num >> 8 & 0x00FF) + amt;
+    const B = (num & 0x0000FF) + amt;
+    return "#" + (0x1000000 + (R<255?R<1?0:R:255)*0x10000 + (G<255?G<1?0:G:255)*0x100 + (B<255?B<1?0:B:255)).toString(16).slice(1);
+  }
+
+  function changeCurrency() {
+    state.settings.currency = document.getElementById('currencySelect').value;
+    save();
+    render();
+  }
+
+  function setNumberStyle(style) {
+    state.settings.numberStyle = style;
+    save();
+    applyLanguage();
+    render();
+    document.getElementById('currentDate').textContent = formatHeaderDate();
+    updateClock();
+  }
+
+  function toggleShowDates() {
+    state.settings.showDates = !state.settings.showDates;
+    if (state.settings.showDates) {
+      state.sections.forEach(s => s.rows.forEach(r => { if (!r.date) r.date = todayISO(); }));
+    }
+    save();
+    applyLanguage();
+    render();
+  }
+
+  function setCalendar(cal) {
+    state.settings.calendar = cal;
+    save();
+    applyLanguage();
+    render();
+    document.getElementById('currentDate').textContent = formatHeaderDate();
+  }
+
+  // ============================================================
+  // ADD SECTION MODAL
+  // ============================================================
+  function openAddSectionModal() {
+    selectedIcon = '💼';
+    selectedColor = '#2563eb';
+    document.getElementById('sectionName').value = '';
+    document.getElementById('sectionType').value = 'expense';
+    renderIconPicker();
+    renderColorPicker();
+    document.getElementById('addSectionModal').classList.add('show');
+    document.getElementById('overlay').classList.add('show');
+    setTimeout(() => document.getElementById('sectionName').focus(), 100);
+  }
+
+  function closeAddSectionModal() {
+    document.getElementById('addSectionModal').classList.remove('show');
+    document.getElementById('overlay').classList.remove('show');
+  }
+
+  function renderIconPicker() {
+    document.getElementById('iconPicker').innerHTML = ICONS.map(i => `
+      <div class="icon-option ${selectedIcon === i ? 'active' : ''}" onclick="selectIcon('${i}')">${i}</div>
+    `).join('');
+  }
+  function selectIcon(icon) { selectedIcon = icon; renderIconPicker(); }
+
+  function renderColorPicker() {
+    document.getElementById('colorPicker').innerHTML = COLORS.map(c => `
+      <div class="color-dot ${selectedColor === c ? 'active' : ''}" style="background:${c}" onclick="selectColor('${c}')"></div>
+    `).join('');
+  }
+  function selectColor(color) { selectedColor = color; renderColorPicker(); }
+
+  function saveSection() {
+    const name = document.getElementById('sectionName').value.trim();
+    const type = document.getElementById('sectionType').value;
+    if (!name) { alert(tr('enterSectionName')); return; }
+    addSection(name, type, selectedIcon, selectedColor);
+    closeAddSectionModal();
+    showToast(tr('toastSectionAdded'));
+  }
+
+  // ============================================================
+  // RESET MODAL
+  // ============================================================
+  function openResetModal() {
+    document.getElementById('resetConfirmInput').value = '';
+    const btn = document.getElementById('resetConfirmBtn');
+    btn.disabled = true; btn.style.opacity = '0.5'; btn.style.cursor = 'not-allowed';
+    document.getElementById('resetModal').classList.add('show');
+    document.getElementById('overlay').classList.add('show');
+    setTimeout(() => document.getElementById('resetConfirmInput').focus(), 100);
+  }
+
+  function closeResetModal() {
+    document.getElementById('resetModal').classList.remove('show');
+    document.getElementById('overlay').classList.remove('show');
+  }
+
+  function checkResetConfirm() {
+    const val = document.getElementById('resetConfirmInput').value.trim();
+    const ok = val === tr('resetConfirmWord');
+    const btn = document.getElementById('resetConfirmBtn');
+    btn.disabled = !ok;
+    btn.style.opacity = ok ? '1' : '0.5';
+    btn.style.cursor = ok ? 'pointer' : 'not-allowed';
+  }
+
+  function resetAll() {
+    const lang = state.settings.language;
+    const theme = state.settings.theme;
+    state = {
+      title: T[lang].defaultTitle,
+      sections: [],
+      settings: {
+        theme: theme, accent: '#1a1a2e', currency: 'SAR',
+        numberStyle: 'latin', language: lang,
+        showDates: false, calendar: 'gregorian'
+      },
+      cache: { rates: null, ratesUpdated: null, prayerCity: '' }
+    };
+    save();
+    document.getElementById('appTitle').value = state.title;
+    document.getElementById('currencySelect').value = state.settings.currency;
+    closeResetModal();
+    closeSettings();
+    renderAccentColors();
+    applyAccent();
+    applyLanguage();
+    render();
+    document.getElementById('currentDate').textContent = formatHeaderDate();
+    showToast(tr('toastReset'));
+  }
+
+  // ============================================================
+  // JSON BACKUP
+  // ============================================================
+  function exportData() {
+    const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `budget-${todayISO()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast(tr('toastBackupSaved'));
+  }
+
+  function importData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (data.sections) {
+          state = data;
+          if (!state.settings) {
+            state.settings = { theme: 'dark', accent: '#1a1a2e', currency: 'SAR', numberStyle: 'latin', language: 'ar', showDates: false, calendar: 'gregorian' };
+          }
+          if (!state.cache) state.cache = { rates: null, ratesUpdated: null, prayerCity: '' };
+          if (!state.title) state.title = 'ميزانيتي';
+          save();
+          document.getElementById('appTitle').value = state.title;
+          document.getElementById('currencySelect').value = state.settings.currency;
+          setTheme(state.settings.theme);
+          renderAccentColors();
+          applyAccent();
+          applyLanguage();
+          render();
+          showToast(tr('toastImported'));
+        }
+      } catch(e) { alert(tr('invalidFile')); }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+  }
+
+  // ============================================================
+  // EXCEL IMPORT
+  // ============================================================
+  function importExcel(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+        const newSections = parseWorkbook(workbook);
+        if (newSections.length === 0) { alert(tr('excelNoData')); return; }
+        if (state.sections.length > 0) {
+          if (confirm(tr('confirmExcelReplace'))) state.sections = newSections;
+          else state.sections = state.sections.concat(newSections);
+        } else {
+          state.sections = newSections;
+        }
+        save();
+        render();
+        showToast(`✓ ${newSections.length} ${tr('sectionsCount')}`);
+      } catch(err) {
+        console.error(err);
+        alert(tr('invalidFile') + ': ' + err.message);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+    event.target.value = '';
+  }
+
+  function parseWorkbook(workbook) {
+    const sections = [];
+    workbook.SheetNames.forEach(sheetName => {
+      if (sheetName === T.ar.summarySheet || sheetName === T.en.summarySheet) return;
+      const sheet = workbook.Sheets[sheetName];
+      const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '', raw: false });
+      if (!rows || rows.length === 0) return;
+      sections.push(...parseSheet(rows, sheetName));
+    });
+    return sections;
+  }
+
+  function parseSheet(rows, sheetName) {
+    const sections = [];
+    let currentSection = null;
+    let nameColIdx = -1, amountColIdx = -1, dateColIdx = -1;
+
+    const incomeKeywords = ['دخل','راتب','إيراد','ايراد','رواتب','مكافأة','مكافاة','عائد','ربح','income','salary','revenue','earnings'];
+    const skipKeywords = ['مجموع','المجموع','إجمالي','اجمالي','الإجمالي','الاجمالي','total','sum'];
+
+    function detectType(text) {
+      const t = String(text || '').toLowerCase();
+      for (const kw of incomeKeywords) if (t.includes(kw)) return 'income';
+      return 'expense';
+    }
+    function isHeaderRow(row) {
+      const text = row.map(c => String(c || '').toLowerCase()).join(' ');
+      return /البند|الصنف|اسم|المبلغ|القيمة|التاريخ|item|name|amount|value|description|date/i.test(text);
+    }
+    function findColumns(row) {
+      let nIdx = -1, aIdx = -1, dIdx = -1;
+      row.forEach((cell, i) => {
+        const t = String(cell || '').toLowerCase();
+        if (/البند|الصنف|اسم|التفاصيل|item|name|description|تفاصيل/.test(t) && nIdx === -1) nIdx = i;
+        if (/المبلغ|القيمة|amount|value|قيمة|مبلغ|سعر|price/.test(t) && aIdx === -1) aIdx = i;
+        if (/التاريخ|تاريخ|date/.test(t) && dIdx === -1) dIdx = i;
+      });
+      return { nIdx, aIdx, dIdx };
+    }
+    function parseAmount(val) {
+      if (val === null || val === undefined || val === '') return null;
+      if (typeof val === 'number') return val;
+      let s = String(val);
+      if (/\d{4}-\d{2}-\d{2}/.test(s) || /\d{1,2}\/\d{1,2}\/\d{2,4}/.test(s)) return null;
+      s = s.replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+      s = s.replace(/[٬,]/g, '');
+      s = s.replace(/[^\d.\-]/g, '');
+      const n = parseFloat(s);
+      return isNaN(n) ? null : n;
+    }
+    function parseDate(val) {
+      if (!val) return '';
+      if (val instanceof Date) {
+        if (isNaN(val.getTime())) return '';
+        return val.toISOString().split('T')[0];
+      }
+      const s = String(val).trim();
+      if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.split('T')[0].split(' ')[0];
+      const m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+      if (m) {
+        let [_, a, b, y] = m;
+        if (y.length === 2) y = '20' + y;
+        const d = new Date(parseInt(y), parseInt(b) - 1, parseInt(a));
+        if (!isNaN(d.getTime())) return d.toISOString().split('T')[0];
+      }
+      return '';
+    }
+    function isSkipRow(row) {
+      const text = row.map(c => String(c || '').toLowerCase()).join(' ').trim();
+      if (!text) return true;
+      for (const kw of skipKeywords) if (text.includes(kw)) return true;
+      return false;
+    }
+    function isSectionHeaderRow(row) {
+      const nonEmpty = row.filter(c => String(c || '').trim() !== '');
+      if (nonEmpty.length === 0) return false;
+      const hasNumber = row.some(c => parseAmount(c) !== null);
+      return nonEmpty.length <= 2 && !hasNumber;
+    }
+
+    const COLORS_LIST = ['#2563eb','#dc2626','#16a34a','#ea580c','#7c3aed','#0891b2','#db2777','#475569'];
+    const ICONS_LIST = ['💰','🧾','💳','🛒','📱','🏠','🚗','🍔','💡','📊'];
+    let colorIdx = 0;
+
+    function newSection(name, type) {
+      return {
+        id: uid(), name: name || sheetName, type: type || 'expense',
+        icon: type === 'income' ? '💰' : ICONS_LIST[colorIdx % ICONS_LIST.length],
+        color: type === 'income' ? '#16a34a' : COLORS_LIST[colorIdx % COLORS_LIST.length],
+        collapsed: false, rows: []
+      };
+    }
+
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      if (!row || row.length === 0) continue;
+      if (isHeaderRow(row)) {
+        const cols = findColumns(row);
+        if (cols.nIdx !== -1) nameColIdx = cols.nIdx;
+        if (cols.aIdx !== -1) amountColIdx = cols.aIdx;
+        if (cols.dIdx !== -1) dateColIdx = cols.dIdx;
+        continue;
+      }
+      if (isSkipRow(row)) continue;
+      if (nameColIdx === -1 || amountColIdx === -1) {
+        for (let c = 0; c < row.length; c++) {
+          const num = parseAmount(row[c]);
+          const txt = String(row[c] || '').trim();
+          if (txt && num === null && nameColIdx === -1) nameColIdx = c;
+          if (num !== null && amountColIdx === -1) amountColIdx = c;
+        }
+      }
+      const name = String(row[nameColIdx] || '').trim();
+      const amount = parseAmount(row[amountColIdx >= 0 ? amountColIdx : row.length - 1]);
+      const date = dateColIdx !== -1 ? parseDate(row[dateColIdx]) : '';
+
+      if (name && amount === null && isSectionHeaderRow(row)) {
+        if (currentSection && currentSection.rows.length > 0) {
+          sections.push(currentSection);
+          colorIdx++;
+        }
+        currentSection = newSection(name, detectType(name));
+        continue;
+      }
+      if (name || amount !== null) {
+        if (!currentSection) currentSection = newSection(sheetName, detectType(sheetName));
+        currentSection.rows.push({ id: uid(), name, amount: amount || 0, date: date || '' });
+      }
+    }
+    if (currentSection && currentSection.rows.length > 0) sections.push(currentSection);
+
+    if (sections.some(s => s.rows.some(r => r.date))) state.settings.showDates = true;
+    return sections;
+  }
+
+  // ============================================================
+  // EXCEL EXPORT (Smart)
+  // ============================================================
+  function exportExcel() {
+    const lang = state.settings.language;
+    const wb = XLSX.utils.book_new();
+
+    // Summary sheet
+    const summaryRows = [];
+    summaryRows.push([state.title || tr('defaultTitle')]);
+    summaryRows.push([formatHeaderDate()]);
+    summaryRows.push([]);
+    summaryRows.push([tr('colSection'), tr('colType'), tr('colTotal')]);
+
+    let totalIncome = 0, totalExpense = 0;
+    state.sections.forEach(s => {
+      const sectionTotal = s.rows.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
+      summaryRows.push([s.name, s.type === 'income' ? tr('typeIncome') : tr('typeExpense'), sectionTotal]);
+      if (s.type === 'income') totalIncome += sectionTotal;
+      else totalExpense += sectionTotal;
+    });
+
+    summaryRows.push([]);
+    summaryRows.push([tr('totalIncome'), '', totalIncome]);
+    summaryRows.push([tr('totalExpense'), '', totalExpense]);
+    summaryRows.push([tr('netBalance'), '', totalIncome - totalExpense]);
+    const savingsRate = totalIncome > 0 ? ((totalIncome - totalExpense) / totalIncome * 100) : 0;
+    summaryRows.push([tr('savingsRate'), '', savingsRate.toFixed(2) + '%']);
+
+    const summarySheet = XLSX.utils.aoa_to_sheet(summaryRows);
+    summarySheet['!cols'] = [{ wch: 30 }, { wch: 15 }, { wch: 18 }];
+    if (lang === 'ar') summarySheet['!rtl'] = true;
+    formatSheetTextCol(summarySheet, 0);
+    formatSheetTextCol(summarySheet, 1);
+    formatSheetNumbers(summarySheet, [2]);
+    XLSX.utils.book_append_sheet(wb, summarySheet, tr('summarySheet'));
+
+    // Section sheets
+    state.sections.forEach(s => {
+      const showDates = state.settings.showDates && s.rows.some(r => r.date);
+      const headers = ['#', tr('tableItem')];
+      if (showDates) headers.push(tr('tableDate'));
+      headers.push(tr('tableAmount'));
+
+      const sheetData = [headers];
+      s.rows.forEach((r, i) => {
+        const row = [i + 1, r.name || ''];
+        if (showDates) row.push(r.date || '');
+        row.push(parseFloat(r.amount) || 0);
+        sheetData.push(row);
+      });
+
+      const totalRow = ['', tr('colTotal')];
+      if (showDates) totalRow.push('');
+      totalRow.push(s.rows.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0));
+      sheetData.push([]);
+      sheetData.push(totalRow);
+
+      const sheet = XLSX.utils.aoa_to_sheet(sheetData);
+      const cols = [{ wch: 6 }, { wch: 35 }];
+      if (showDates) cols.push({ wch: 14 });
+      cols.push({ wch: 16 });
+      sheet['!cols'] = cols;
+      if (lang === 'ar') sheet['!rtl'] = true;
+
+      formatSheetTextCol(sheet, 1);
+      if (showDates) formatSheetTextCol(sheet, 2);
+      formatSheetNumbers(sheet, [headers.length - 1]);
+
+      let safeName = s.name.replace(/[\\\/\?\*\[\]:]/g, '').substring(0, 31).trim();
+      if (!safeName) safeName = `Section ${state.sections.indexOf(s) + 1}`;
+      let finalName = safeName, suffix = 1;
+      while (wb.SheetNames.includes(finalName)) finalName = safeName.substring(0, 28) + ' ' + (++suffix);
+      XLSX.utils.book_append_sheet(wb, sheet, finalName);
+    });
+
+    const filename = `${(state.title || 'budget').replace(/[\\\/\?\*\[\]:]/g, '_')}-${todayISO()}.xlsx`;
+    XLSX.writeFile(wb, filename);
+    showToast(tr('toastExcelExported'));
+  }
+
+  function formatSheetNumbers(sheet, colIndices) {
+    if (!sheet['!ref']) return;
+    const range = XLSX.utils.decode_range(sheet['!ref']);
+    for (let R = range.s.r; R <= range.e.r; R++) {
+      colIndices.forEach(C => {
+        const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
+        const cell = sheet[cellRef];
+        if (cell && cell.v !== '' && cell.v !== null && !isNaN(parseFloat(cell.v))) {
+          cell.t = 'n';
+          cell.v = parseFloat(cell.v);
+          cell.z = '#,##0.00';
+        }
+      });
+    }
+  }
+
+  function formatSheetTextCol(sheet, colIndex) {
+    if (!sheet['!ref']) return;
+    const range = XLSX.utils.decode_range(sheet['!ref']);
+    for (let R = range.s.r; R <= range.e.r; R++) {
+      const cellRef = XLSX.utils.encode_cell({ r: R, c: colIndex });
+      const cell = sheet[cellRef];
+      if (cell && cell.v !== '' && cell.v !== null) {
+        cell.t = 's';
+        cell.v = String(cell.v);
+        cell.z = '@';
+      }
+    }
+  }
+
+  // ============================================================
+  // PDF EXPORT
+  // ============================================================
+  async function exportPDF() {
+    showToast('⏳ ' + (state.settings.language === 'ar' ? 'جارٍ التصدير...' : 'Exporting...'));
+
+    // Use print-friendly approach with html2canvas
+    const container = document.querySelector('.container');
+
+    // Hide elements not needed in PDF
+    const toHide = document.querySelectorAll('.top-toolbar, .header-clock, .section-actions .btn-icon, .col-action, .add-row-btn');
+    toHide.forEach(el => el.style.visibility = 'hidden');
+
+    try {
+      const canvas = await html2canvas(container, {
+        backgroundColor: state.settings.theme === 'dark' ? '#0f1117' : '#ffffff',
+        scale: 2,
+        useCORS: true,
+        logging: false
+      });
+
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const imgData = canvas.toDataURL('image/jpeg', 0.95);
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = pageWidth - 10;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      let heightLeft = imgHeight;
+      let position = 5;
+
+      pdf.addImage(imgData, 'JPEG', 5, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight - 10;
+
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight + 5;
+        pdf.addPage();
+        pdf.addImage(imgData, 'JPEG', 5, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight - 10;
+      }
+
+      const filename = `${(state.title || 'budget').replace(/[\\\/\?\*\[\]:]/g, '_')}-${todayISO()}.pdf`;
+      pdf.save(filename);
+      showToast(tr('toastPDFExported'));
+    } catch(err) {
+      console.error(err);
+      alert(tr('invalidFile') + ': ' + err.message);
+    } finally {
+      toHide.forEach(el => el.style.visibility = '');
+    }
+  }
+
+  // ============================================================
+  // PRAYER TIMES
+  // ============================================================
+  function openPrayerModal() {
+    document.getElementById('prayerModal').classList.add('show');
+    document.getElementById('overlay').classList.add('show');
+    if (state.cache.prayerCity) {
+      document.getElementById('prayerCityInput').value = state.cache.prayerCity;
+      fetchPrayerByCity();
+    } else {
+      fetchPrayerByGeo();
+    }
+  }
+
+  function closePrayerModal() {
+    document.getElementById('prayerModal').classList.remove('show');
+    document.getElementById('overlay').classList.remove('show');
+  }
+
+  function fetchPrayerByGeo() {
+    const content = document.getElementById('prayerContent');
+    content.innerHTML = `<div class="loading"><div class="spinner"></div><span>${tr('loadingPrayer')}</span></div>`;
+
+    if (!navigator.geolocation) {
+      content.innerHTML = `<div class="loading">${tr('locationDenied')}</div>`;
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      pos => fetchPrayerByCoords(pos.coords.latitude, pos.coords.longitude),
+      () => { content.innerHTML = `<div class="loading">${tr('locationDenied')}</div>`; },
+      { timeout: 8000 }
+    );
+  }
+
+  async function fetchPrayerByCoords(lat, lng) {
+    const content = document.getElementById('prayerContent');
+    content.innerHTML = `<div class="loading"><div class="spinner"></div></div>`;
+    try {
+      // method=4 is Umm al-Qura
+      const url = `https://api.aladhan.com/v1/timings?latitude=${lat}&longitude=${lng}&method=4`;
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.code !== 200) throw new Error('API error');
+      const meta = data.data.meta || {};
+      const place = `${meta.timezone || ''}`;
+      document.getElementById('prayerLocationLabel').textContent = `📍 ${place}`;
+      renderPrayerTimes(data.data.timings);
+    } catch(err) {
+      content.innerHTML = `<div class="loading">${tr('prayerError')}</div>`;
+    }
+  }
+
+  async function fetchPrayerByCity() {
+    const city = document.getElementById('prayerCityInput').value.trim();
+    if (!city) return;
+    state.cache.prayerCity = city;
+    save();
+
+    const content = document.getElementById('prayerContent');
+    content.innerHTML = `<div class="loading"><div class="spinner"></div></div>`;
+
+    try {
+      const url = `https://api.aladhan.com/v1/timingsByCity?city=${encodeURIComponent(city)}&country=&method=4`;
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.code !== 200) throw new Error('API error');
+      document.getElementById('prayerLocationLabel').textContent = `📍 ${city}`;
+      renderPrayerTimes(data.data.timings);
+    } catch(err) {
+      content.innerHTML = `<div class="loading">${tr('prayerError')}</div>`;
+    }
+  }
+
+  function renderPrayerTimes(timings) {
+    const lang = state.settings.language;
+    const prayers = [
+      { key: 'Fajr', icon: '🌅', name: tr('prayerFajr') },
+      { key: 'Sunrise', icon: '☀️', name: tr('prayerSunrise') },
+      { key: 'Dhuhr', icon: '🕌', name: tr('prayerDhuhr') },
+      { key: 'Asr', icon: '🕋', name: tr('prayerAsr') },
+      { key: 'Maghrib', icon: '🌇', name: tr('prayerMaghrib') },
+      { key: 'Isha', icon: '🌙', name: tr('prayerIsha') }
+    ];
+
+    const now = new Date();
+    const nowMins = now.getHours() * 60 + now.getMinutes();
+
+    // Find next prayer (skip Sunrise as it's not a prayer)
+    let activeKey = null;
+    let nextPrayerMins = Infinity;
+    prayers.forEach(p => {
+      if (p.key === 'Sunrise') return;
+      const t = timings[p.key];
+      if (!t) return;
+      const [h, m] = t.split(':').map(Number);
+      const mins = h * 60 + m;
+      if (mins > nowMins && mins < nextPrayerMins) {
+        nextPrayerMins = mins;
+        activeKey = p.key;
+      }
+    });
+
+    function formatTime(t24) {
+      if (!t24) return '';
+      const [h, m] = t24.split(':').map(Number);
+      const isPM = h >= 12;
+      const h12 = h % 12 || 12;
+      const meridiem = lang === 'ar' ? (isPM ? 'م' : 'ص') : (isPM ? 'PM' : 'AM');
+      return `${formatNumber(h12)}:${formatNumber(String(m).padStart(2,'0'))} ${meridiem}`;
+    }
+
+    document.getElementById('prayerContent').innerHTML = `
+      <div class="prayer-times-list">
+        ${prayers.map(p => `
+          <div class="prayer-row ${activeKey === p.key ? 'active' : ''}">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span class="prayer-icon">${p.icon}</span>
+              <span class="prayer-name">${p.name}</span>
+            </div>
+            <span class="prayer-time">${formatTime(timings[p.key])}</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  // ============================================================
+  // CALCULATOR
+  // ============================================================
+  let calc = { current: '0', prev: '', op: null, justEvaluated: false };
+
+  function calcUpdate() {
+    document.getElementById('calcCurrent').textContent = formatNumber(calc.current) || '0';
+    document.getElementById('calcPrev').textContent = calc.prev || '';
+  }
+
+  function calcDigit(d) {
+    if (calc.justEvaluated) { calc.current = '0'; calc.justEvaluated = false; }
+    if (d === '.' && calc.current.includes('.')) return;
+    if (calc.current === '0' && d !== '.') calc.current = d;
+    else calc.current += d;
+    calcUpdate();
+  }
+
+  function calcOp(op) {
+    if (calc.op && !calc.justEvaluated) calcEquals();
+    calc.prev = calc.current + ' ' + (op === '*' ? '×' : op === '/' ? '÷' : op);
+    calc.op = op;
+    calc.opLeft = parseFloat(calc.current);
+    calc.current = '0';
+    calc.justEvaluated = false;
+    calcUpdate();
+  }
+
+  function calcEquals() {
+    if (!calc.op) return;
+    const right = parseFloat(calc.current);
+    let result;
+    switch(calc.op) {
+      case '+': result = calc.opLeft + right; break;
+      case '-': result = calc.opLeft - right; break;
+      case '*': result = calc.opLeft * right; break;
+      case '/': result = right === 0 ? 0 : calc.opLeft / right; break;
+    }
+    calc.prev = `${calc.opLeft} ${calc.op === '*' ? '×' : calc.op === '/' ? '÷' : calc.op} ${right} =`;
+    calc.current = String(parseFloat(result.toFixed(10)));
+    calc.op = null;
+    calc.justEvaluated = true;
+    calcUpdate();
+  }
+
+  function calcClear() {
+    calc = { current: '0', prev: '', op: null, justEvaluated: false };
+    calcUpdate();
+  }
+
+  function calcBackspace() {
+    if (calc.justEvaluated) { calcClear(); return; }
+    calc.current = calc.current.length > 1 ? calc.current.slice(0, -1) : '0';
+    calcUpdate();
+  }
+
+  function calcPercent() {
+    calc.current = String(parseFloat(calc.current) / 100);
+    calcUpdate();
+  }
+
+  function openCalculatorModal() {
+    document.getElementById('calcModal').classList.add('show');
+    document.getElementById('overlay').classList.add('show');
+    switchCalcTab('calc');
+    calcUpdate();
+    populateCurrencySelects();
+  }
+
+  function closeCalcModal() {
+    document.getElementById('calcModal').classList.remove('show');
+    document.getElementById('overlay').classList.remove('show');
+  }
+
+  function switchCalcTab(tab) {
+    document.getElementById('tabCalc').classList.toggle('active', tab === 'calc');
+    document.getElementById('tabConv').classList.toggle('active', tab === 'conv');
+    document.getElementById('calcPaneCalc').style.display = tab === 'calc' ? '' : 'none';
+    document.getElementById('calcPaneConv').style.display = tab === 'conv' ? '' : 'none';
+    if (tab === 'conv') {
+      if (!state.cache.rates) refreshRates();
+      else convertCurrency('from');
+    }
+  }
+
+  // ============================================================
+  // CURRENCY CONVERTER
+  // ============================================================
+  const CONV_CURRENCIES = ['SAR','USD','EUR','GBP','AED','KWD','QAR','OMR','BHD','EGP','JOD','TRY','INR','PKR','PHP','BDT','LKR','CNY','JPY','CAD','AUD','CHF'];
+
+  function populateCurrencySelects() {
+    const fromSel = document.getElementById('convFromCur');
+    const toSel = document.getElementById('convToCur');
+    if (fromSel.children.length > 0) return; // already populated
+
+    const opts = CONV_CURRENCIES.map(c => `<option value="${c}">${c}</option>`).join('');
+    fromSel.innerHTML = opts;
+    toSel.innerHTML = opts;
+    fromSel.value = 'SAR';
+    toSel.value = 'USD';
+  }
+
+  async function refreshRates() {
+    const updatedEl = document.getElementById('convUpdated');
+    updatedEl.textContent = '⏳ ...';
+    try {
+      // Free, no-key API: exchangerate.host
+      const res = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+      const data = await res.json();
+      if (data && data.rates) {
+        state.cache.rates = data.rates;
+        state.cache.ratesUpdated = new Date().toISOString();
+        save();
+        convertCurrency('from');
+        showToast(tr('toastRatesUpdated'));
+      } else throw new Error('no rates');
+    } catch(err) {
+      // Fallback: try open.er-api.com
+      try {
+        const res2 = await fetch('https://open.er-api.com/v6/latest/USD');
+        const data2 = await res2.json();
+        if (data2 && data2.rates) {
+          state.cache.rates = data2.rates;
+          state.cache.ratesUpdated = new Date().toISOString();
+          save();
+          convertCurrency('from');
+          showToast(tr('toastRatesUpdated'));
+          return;
+        }
+      } catch(_) {}
+
+      // Final fallback: hardcoded approximate rates
+      if (!state.cache.rates) {
+        state.cache.rates = {
+          USD: 1, SAR: 3.75, EUR: 0.92, GBP: 0.79, AED: 3.67, KWD: 0.31,
+          QAR: 3.64, OMR: 0.38, BHD: 0.38, EGP: 49.0, JOD: 0.71,
+          TRY: 35.0, INR: 84.5, PKR: 278, PHP: 58, BDT: 119, LKR: 295,
+          CNY: 7.25, JPY: 154, CAD: 1.40, AUD: 1.55, CHF: 0.88
+        };
+        save();
+        convertCurrency('from');
+      }
+      updatedEl.textContent = tr('ratesError');
+      return;
+    }
+    if (state.cache.ratesUpdated) {
+      const d = new Date(state.cache.ratesUpdated);
+      updatedEl.textContent = `🔄 ${d.toLocaleString()}`;
+    }
+  }
+
+  function convertCurrency(direction) {
+    if (!state.cache.rates) return;
+    const fromCur = document.getElementById('convFromCur').value;
+    const toCur = document.getElementById('convToCur').value;
+    const fromAmt = parseFloat(document.getElementById('convFromAmount').value) || 0;
+    const toAmt = parseFloat(document.getElementById('convToAmount').value) || 0;
+    const r = state.cache.rates;
+    const fromRate = r[fromCur] || 1;
+    const toRate = r[toCur] || 1;
+
+    if (direction === 'from') {
+      const result = (fromAmt / fromRate) * toRate;
+      document.getElementById('convToAmount').value = parseFloat(result.toFixed(4));
+    } else {
+      const result = (toAmt / toRate) * fromRate;
+      document.getElementById('convFromAmount').value = parseFloat(result.toFixed(4));
+    }
+
+    const oneFromInTo = (1 / fromRate) * toRate;
+    document.getElementById('convRate').textContent = `1 ${fromCur} = ${oneFromInTo.toFixed(4)} ${toCur}`;
+
+    if (state.cache.ratesUpdated) {
+      const d = new Date(state.cache.ratesUpdated);
+      document.getElementById('convUpdated').textContent = `🔄 ${d.toLocaleString()}`;
+    }
+  }
+
+  function swapCurrency() {
+    const fromSel = document.getElementById('convFromCur');
+    const toSel = document.getElementById('convToCur');
+    [fromSel.value, toSel.value] = [toSel.value, fromSel.value];
+    convertCurrency('from');
+  }
+
+  // ============================================================
+  // END OF SERVICE CALCULATOR
+  // Saudi Labor Law Articles 84-86:
+  // - Article 84: Half month per year for first 5 years, full month per year after
+  // - Article 85 (resignation):
+  //   - < 2 years: nothing
+  //   - 2-5 years: 1/3 of full gratuity
+  //   - 5-10 years: 2/3 of full gratuity
+  //   - 10+ years: full gratuity
+  // - Article 84 (terminated): full gratuity regardless of years
+  // - Non-Saudis: same calculation rules apply (no GOSI difference here)
+  // ============================================================
+  let eosNationality = 'saudi';
+  function setEosNat(n) {
+    eosNationality = n;
+    document.getElementById('natSaudi').classList.toggle('active', n === 'saudi');
+    document.getElementById('natOther').classList.toggle('active', n === 'other');
+    calculateEos();
+  }
+
+  function openEosModal() {
+    document.getElementById('eosModal').classList.add('show');
+    document.getElementById('overlay').classList.add('show');
+    setTimeout(() => document.getElementById('eosSalary').focus(), 100);
+  }
+
+  function closeEosModal() {
+    document.getElementById('eosModal').classList.remove('show');
+    document.getElementById('overlay').classList.remove('show');
+  }
+
+  function calculateEos() {
+    const salary = parseFloat(document.getElementById('eosSalary').value) || 0;
+    const years = parseFloat(document.getElementById('eosYears').value) || 0;
+    const reason = document.getElementById('eosReason').value;
+    const leaveDays = parseFloat(document.getElementById('eosLeaveDays').value) || 0;
+    const resultsEl = document.getElementById('eosResults');
+
+    if (salary <= 0 || years <= 0) {
+      resultsEl.style.display = 'none';
+      return;
+    }
+
+    // Calculate full gratuity (Article 84):
+    // - First 5 years: 0.5 month per year
+    // - After 5 years: 1 month per year
+    let fullGratuity;
+    let breakdown = '';
+    if (years <= 5) {
+      fullGratuity = salary * 0.5 * years;
+      breakdown = tr('eosFiveYearsRule');
+    } else {
+      fullGratuity = (salary * 0.5 * 5) + (salary * 1 * (years - 5));
+      breakdown = `${tr('eosFiveYearsRule')} + ${tr('eosAfterFive')}`;
+    }
+
+    // Apply Article 85 (resignation rules)
+    let actualGratuity;
+    let eligibilityNote = '';
+    if (reason === 'resigned') {
+      if (years < 2) {
+        actualGratuity = 0;
+        eligibilityNote = tr('eosNotEligible');
+      } else if (years < 5) {
+        actualGratuity = fullGratuity * (1/3);
+        eligibilityNote = tr('eosPartialThird');
+      } else if (years < 10) {
+        actualGratuity = fullGratuity * (2/3);
+        eligibilityNote = tr('eosPartialTwoThirds');
+      } else {
+        actualGratuity = fullGratuity;
+        eligibilityNote = tr('eosFullEligibility');
+      }
+    } else {
+      // terminated or contract end → full gratuity (if years >= 0)
+      actualGratuity = fullGratuity;
+      eligibilityNote = tr('eosFullEligibility');
+    }
+
+    // Leave compensation: dailyWage = salary / 30, then × leaveDays
+    const dailyWage = salary / 30;
+    const leaveComp = dailyWage * leaveDays;
+
+    const total = actualGratuity + leaveComp;
+
+    resultsEl.style.display = 'block';
+    resultsEl.innerHTML = `
+      <div style="font-size:13px; color:var(--text-soft); margin-bottom:10px; padding:8px 10px; background:var(--card); border-radius:8px;">
+        ${eligibilityNote} • ${breakdown}
+      </div>
+      <div class="eos-result-row">
+        <span class="label">${tr('eosBaseGratuity')}</span>
+        <span class="value">${formatCurrency(actualGratuity)}</span>
+      </div>
+      ${leaveDays > 0 ? `
+        <div class="eos-result-row">
+          <span class="label">${tr('eosLeaveCompensation')} (${formatNumber(leaveDays)} × ${formatCurrency(dailyWage.toFixed(2))})</span>
+          <span class="value">${formatCurrency(leaveComp)}</span>
+        </div>
+      ` : ''}
+      <div class="eos-result-row total">
+        <span class="label">${tr('eosTotal')}</span>
+        <span class="value">${formatCurrency(total)}</span>
+      </div>
+    `;
+  }
+
+  // ============================================================
+  // TEMPLATE
+  // ============================================================
+  function loadDefaultTemplate() {
+    if (state.sections.length > 0) {
+      if (!confirm(tr('confirmReplaceTemplate'))) return;
+    }
+    const lang = state.settings.language;
+    state.sections = [
+      { id: uid(), name: lang === 'ar' ? 'الراتب الشهري' : 'Monthly Salary',
+        type: 'income', icon: '💰', color: '#16a34a', collapsed: false,
+        rows: [{ id: uid(), name: '', amount: 0, date: '' }] },
+      { id: uid(), name: lang === 'ar' ? 'الفواتير الثابتة' : 'Fixed Bills',
+        type: 'expense', icon: '🧾', color: '#ea580c', collapsed: false,
+        rows: [
+          { id: uid(), name: lang === 'ar' ? 'الكهرباء' : 'Electricity', amount: 0, date: '' },
+          { id: uid(), name: lang === 'ar' ? 'الماء' : 'Water', amount: 0, date: '' },
+          { id: uid(), name: lang === 'ar' ? 'الإنترنت' : 'Internet', amount: 0, date: '' },
+          { id: uid(), name: lang === 'ar' ? 'الجوال' : 'Mobile', amount: 0, date: '' }
+        ] },
+      { id: uid(), name: lang === 'ar' ? 'الأقساط والديون' : 'Loans & Installments',
+        type: 'expense', icon: '💳', color: '#dc2626', collapsed: false,
+        rows: [{ id: uid(), name: '', amount: 0, date: '' }] },
+      { id: uid(), name: lang === 'ar' ? 'المصاريف اليومية' : 'Daily Expenses',
+        type: 'expense', icon: '🛒', color: '#2563eb', collapsed: false,
+        rows: [
+          { id: uid(), name: lang === 'ar' ? 'البقالة' : 'Groceries', amount: 0, date: '' },
+          { id: uid(), name: lang === 'ar' ? 'البنزين' : 'Fuel', amount: 0, date: '' }
+        ] },
+      { id: uid(), name: lang === 'ar' ? 'الادخار' : 'Savings',
+        type: 'expense', icon: '🏦', color: '#0891b2', collapsed: false,
+        rows: [{ id: uid(), name: lang === 'ar' ? 'محوّش الشهر' : 'Monthly savings', amount: 0, date: '' }] }
+    ];
+    save();
+    render();
+    closeSettings();
+    showToast(tr('toastTemplateLoaded'));
+  }
+
+  function showToast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 2200);
+  }
+
+  // ============================================================
+  // INIT
+  // ============================================================
+  load();
+  document.getElementById('appTitle').value = state.title;
+  document.getElementById('currencySelect').value = state.settings.currency;
+  document.body.setAttribute('data-theme', state.settings.theme);
+  document.getElementById('themeToggle').textContent = state.settings.theme === 'dark' ? '☀️' : '🌙';
+  document.getElementById('currentDate').textContent = formatHeaderDate();
+  renderAccentColors();
+  applyAccent();
+  applyLanguage();
+  render();
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeAllModals();
+  });
+</script>
+
+</body>
+</html>
